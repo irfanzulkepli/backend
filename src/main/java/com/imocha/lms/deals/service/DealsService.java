@@ -4,6 +4,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.stereotype.Service;
+
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.deals.entities.Deals;
@@ -22,16 +31,6 @@ import com.imocha.lms.stages.service.StagesService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.stereotype.Service;
-
-import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -159,5 +158,25 @@ public class DealsService {
 	public int getDealsCountByPipelines(Pipelines pipelines) {
 		List<Deals> dealsList = dealsRepository.findByPipelines(pipelines);
 		return dealsList.size();
+	}
+
+	public Long getPersonOpenDealsCountByStatus(Long id) {
+		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person",
+				id);
+
+		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_open")).count();
+	}
+
+	public Long getPersonClosedDealsCountByStatus(Long id) {
+		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person",
+				id);
+
+		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_closed")).count();
+	}
+
+	public List<Deals> getDealsByPersonId(Long id) {
+		List<Deals> deals = dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person", id);
+
+		return deals;
 	}
 }

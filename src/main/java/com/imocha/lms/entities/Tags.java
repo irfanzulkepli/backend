@@ -16,236 +16,209 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Version;
 
 @Entity
-@Table(name="tags", indexes={@Index(name="tags_name_IX", columnList="name", unique=true)})
+@Table(name = "tags", indexes = { @Index(name = "tags_name_IX", columnList = "name", unique = true) })
 public class Tags implements Serializable {
 
-    /** Primary key. */
-    protected static final String PK = "id";
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(unique = true, nullable = false, precision = 20)
+	private long id;
+	@Column(unique = true, nullable = false, length = 191)
+	private String name;
+	@Column(name = "color_code", length = 191)
+	private String colorCode;
+	@Column(name = "created_at")
+	private Date createdAt;
+	@Column(name = "updated_at")
+	private Date updatedAt;
+	@OneToMany(mappedBy = "tags")
+	private Set<Taggables> taggables;
 
-    /**
-     * The optimistic lock. Available via standard bean get/set operations.
-     */
-    @Version
-    @Column(name="LOCK_FLAG")
-    private Integer lockFlag;
+	/** Default constructor. */
+	public Tags() {
+		super();
+	}
 
-    /**
-     * Access method for the lockFlag property.
-     *
-     * @return the current value of the lockFlag property
-     */
-    public Integer getLockFlag() {
-        return lockFlag;
-    }
+	/**
+	 * Access method for id.
+	 *
+	 * @return the current value of id
+	 */
+	public long getId() {
+		return id;
+	}
 
-    /**
-     * Sets the value of the lockFlag property.
-     *
-     * @param aLockFlag the new value of the lockFlag property
-     */
-    public void setLockFlag(Integer aLockFlag) {
-        lockFlag = aLockFlag;
-    }
+	/**
+	 * Setter method for id.
+	 *
+	 * @param aId the new value for id
+	 */
+	public void setId(long aId) {
+		id = aId;
+	}
 
-    @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(unique=true, nullable=false, precision=20)
-    private long id;
-    @Column(unique=true, nullable=false, length=191)
-    private String name;
-    @Column(name="color_code", length=191)
-    private String colorCode;
-    @Column(name="created_at")
-    private Date createdAt;
-    @Column(name="updated_at")
-    private Date updatedAt;
-    @OneToMany(mappedBy="tags")
-    private Set<Taggables> taggables;
+	/**
+	 * Access method for name.
+	 *
+	 * @return the current value of name
+	 */
+	public String getName() {
+		return name;
+	}
 
-    /** Default constructor. */
-    public Tags() {
-        super();
-    }
+	/**
+	 * Setter method for name.
+	 *
+	 * @param aName the new value for name
+	 */
+	public void setName(String aName) {
+		name = aName;
+	}
 
-    /**
-     * Access method for id.
-     *
-     * @return the current value of id
-     */
-    public long getId() {
-        return id;
-    }
+	/**
+	 * Access method for colorCode.
+	 *
+	 * @return the current value of colorCode
+	 */
+	public String getColorCode() {
+		return colorCode;
+	}
 
-    /**
-     * Setter method for id.
-     *
-     * @param aId the new value for id
-     */
-    public void setId(long aId) {
-        id = aId;
-    }
+	/**
+	 * Setter method for colorCode.
+	 *
+	 * @param aColorCode the new value for colorCode
+	 */
+	public void setColorCode(String aColorCode) {
+		colorCode = aColorCode;
+	}
 
-    /**
-     * Access method for name.
-     *
-     * @return the current value of name
-     */
-    public String getName() {
-        return name;
-    }
+	/**
+	 * Access method for createdAt.
+	 *
+	 * @return the current value of createdAt
+	 */
+	public Date getCreatedAt() {
+		return createdAt;
+	}
 
-    /**
-     * Setter method for name.
-     *
-     * @param aName the new value for name
-     */
-    public void setName(String aName) {
-        name = aName;
-    }
+	/**
+	 * Setter method for createdAt.
+	 *
+	 * @param aCreatedAt the new value for createdAt
+	 */
+	public void setCreatedAt(Date aCreatedAt) {
+		createdAt = aCreatedAt;
+	}
 
-    /**
-     * Access method for colorCode.
-     *
-     * @return the current value of colorCode
-     */
-    public String getColorCode() {
-        return colorCode;
-    }
+	/**
+	 * Access method for updatedAt.
+	 *
+	 * @return the current value of updatedAt
+	 */
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
 
-    /**
-     * Setter method for colorCode.
-     *
-     * @param aColorCode the new value for colorCode
-     */
-    public void setColorCode(String aColorCode) {
-        colorCode = aColorCode;
-    }
+	/**
+	 * Setter method for updatedAt.
+	 *
+	 * @param aUpdatedAt the new value for updatedAt
+	 */
+	public void setUpdatedAt(Date aUpdatedAt) {
+		updatedAt = aUpdatedAt;
+	}
 
-    /**
-     * Access method for createdAt.
-     *
-     * @return the current value of createdAt
-     */
-    public Date getCreatedAt() {
-        return createdAt;
-    }
+	/**
+	 * Access method for taggables.
+	 *
+	 * @return the current value of taggables
+	 */
+	public Set<Taggables> getTaggables() {
+		return taggables;
+	}
 
-    /**
-     * Setter method for createdAt.
-     *
-     * @param aCreatedAt the new value for createdAt
-     */
-    public void setCreatedAt(Date aCreatedAt) {
-        createdAt = aCreatedAt;
-    }
+	/**
+	 * Setter method for taggables.
+	 *
+	 * @param aTaggables the new value for taggables
+	 */
+	public void setTaggables(Set<Taggables> aTaggables) {
+		taggables = aTaggables;
+	}
 
-    /**
-     * Access method for updatedAt.
-     *
-     * @return the current value of updatedAt
-     */
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
+	/**
+	 * Compares the key for this instance with another Tags.
+	 *
+	 * @param other The object to compare to
+	 * @return True if other object is instance of class Tags and the key objects
+	 *         are equal
+	 */
+	private boolean equalKeys(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (!(other instanceof Tags)) {
+			return false;
+		}
+		Tags that = (Tags) other;
+		if (this.getId() != that.getId()) {
+			return false;
+		}
+		return true;
+	}
 
-    /**
-     * Setter method for updatedAt.
-     *
-     * @param aUpdatedAt the new value for updatedAt
-     */
-    public void setUpdatedAt(Date aUpdatedAt) {
-        updatedAt = aUpdatedAt;
-    }
+	/**
+	 * Compares this instance with another Tags.
+	 *
+	 * @param other The object to compare to
+	 * @return True if the objects are the same
+	 */
+	@Override
+	public boolean equals(Object other) {
+		if (!(other instanceof Tags))
+			return false;
+		return this.equalKeys(other) && ((Tags) other).equalKeys(this);
+	}
 
-    /**
-     * Access method for taggables.
-     *
-     * @return the current value of taggables
-     */
-    public Set<Taggables> getTaggables() {
-        return taggables;
-    }
+	/**
+	 * Returns a hash code for this instance.
+	 *
+	 * @return Hash code
+	 */
+	@Override
+	public int hashCode() {
+		int i;
+		int result = 17;
+		i = (int) (getId() ^ (getId() >>> 32));
+		result = 37 * result + i;
+		return result;
+	}
 
-    /**
-     * Setter method for taggables.
-     *
-     * @param aTaggables the new value for taggables
-     */
-    public void setTaggables(Set<Taggables> aTaggables) {
-        taggables = aTaggables;
-    }
+	/**
+	 * Returns a debug-friendly String representation of this instance.
+	 *
+	 * @return String representation of this instance
+	 */
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer("[Tags |");
+		sb.append(" id=").append(getId());
+		sb.append("]");
+		return sb.toString();
+	}
 
-    /**
-     * Compares the key for this instance with another Tags.
-     *
-     * @param other The object to compare to
-     * @return True if other object is instance of class Tags and the key objects are equal
-     */
-    private boolean equalKeys(Object other) {
-        if (this==other) {
-            return true;
-        }
-        if (!(other instanceof Tags)) {
-            return false;
-        }
-        Tags that = (Tags) other;
-        if (this.getId() != that.getId()) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Compares this instance with another Tags.
-     *
-     * @param other The object to compare to
-     * @return True if the objects are the same
-     */
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof Tags)) return false;
-        return this.equalKeys(other) && ((Tags)other).equalKeys(this);
-    }
-
-    /**
-     * Returns a hash code for this instance.
-     *
-     * @return Hash code
-     */
-    @Override
-    public int hashCode() {
-        int i;
-        int result = 17;
-        i = (int)(getId() ^ (getId()>>>32));
-        result = 37*result + i;
-        return result;
-    }
-
-    /**
-     * Returns a debug-friendly String representation of this instance.
-     *
-     * @return String representation of this instance
-     */
-    @Override
-    public String toString() {
-        StringBuffer sb = new StringBuffer("[Tags |");
-        sb.append(" id=").append(getId());
-        sb.append("]");
-        return sb.toString();
-    }
-
-    /**
-     * Return all elements of the primary key.
-     *
-     * @return Map of key names to values
-     */
-    public Map<String, Object> getPrimaryKey() {
-        Map<String, Object> ret = new LinkedHashMap<String, Object>(6);
-        ret.put("id", Long.valueOf(getId()));
-        return ret;
-    }
+	/**
+	 * Return all elements of the primary key.
+	 *
+	 * @return Map of key names to values
+	 */
+	public Map<String, Object> getPrimaryKey() {
+		Map<String, Object> ret = new LinkedHashMap<String, Object>(6);
+		ret.put("id", Long.valueOf(getId()));
+		return ret;
+	}
 
 }
