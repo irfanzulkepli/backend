@@ -10,7 +10,7 @@ import com.imocha.lms.common.model.PhoneResponse;
 import lombok.Data;
 
 @Data
-public class PersonResponse {
+public class PersonPageResponse {
 
     private Long id;
     private String name;

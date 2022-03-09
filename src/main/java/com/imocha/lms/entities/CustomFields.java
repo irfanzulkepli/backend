@@ -18,6 +18,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Version;
 
+import com.imocha.lms.users.entities.Users;
+
 @Entity(name="custom_fields")
 public class CustomFields implements Serializable {
 

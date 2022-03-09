@@ -14,6 +14,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Version;
 
+import com.imocha.lms.users.entities.Users;
+
 @Entity(name="activity_collaborator")
 @IdClass(ActivityCollaborator.ActivityCollaboratorId.class)
 public class ActivityCollaborator implements Serializable {

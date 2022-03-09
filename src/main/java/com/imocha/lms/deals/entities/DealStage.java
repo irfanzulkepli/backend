@@ -12,7 +12,7 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.lms.entities.Stages;
+import com.imocha.lms.stages.entities.Stages;
 
 import lombok.Data;
 

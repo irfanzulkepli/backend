@@ -20,6 +20,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import com.imocha.lms.users.entities.Users;
+
 @Entity
 @Table(name="activities", indexes={@Index(name="activitiesActivitiesContextableTypeContextableIdIndex", columnList="contextable_type,contextable_id")})
 public class Activities implements Serializable {

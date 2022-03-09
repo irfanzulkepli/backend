@@ -17,6 +17,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Version;
 
 import com.imocha.lms.deals.entities.Deals;
+import com.imocha.lms.users.entities.Users;
 
 @Entity(name="proposals")
 public class Proposals implements Serializable {

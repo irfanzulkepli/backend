@@ -11,11 +11,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.lms.entities.LostReasons;
-import com.imocha.lms.entities.Pipelines;
-import com.imocha.lms.entities.Stages;
 import com.imocha.lms.entities.Statuses;
-import com.imocha.lms.entities.Users;
+import com.imocha.lms.lostReasons.entities.LostReasons;
+import com.imocha.lms.pipelines.entities.Pipelines;
+import com.imocha.lms.stages.entities.Stages;
+import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
 
@@ -51,13 +51,13 @@ public class Deals implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "created_by")
-    private Users users;
+    private Users createdBy;
     @ManyToOne
     @JoinColumn(name = "lost_reason_id")
     private LostReasons lostReasons;
     @ManyToOne
     @JoinColumn(name = "owner_id")
-    private Users users2;
+    private Users owner;
     @ManyToOne(optional = false)
     @JoinColumn(name = "pipeline_id", nullable = false)
     private Pipelines pipelines;

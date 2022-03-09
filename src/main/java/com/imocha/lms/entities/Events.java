@@ -19,6 +19,7 @@ import javax.persistence.Table;
 import javax.persistence.Version;
 
 import com.imocha.lms.leads.entities.ContactTypes;
+import com.imocha.lms.users.entities.Users;
 
 @Entity
 @Table(name="events", indexes={@Index(name="eventsEventsContextableTypeContextableIdIndex", columnList="contextable_type,contextable_id")})

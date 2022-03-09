@@ -16,6 +16,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Version;
 
+import com.imocha.lms.users.entities.Users;
+
 @Entity(name="profiles")
 public class Profiles implements Serializable {
 

@@ -20,6 +20,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import com.imocha.lms.users.entities.Users;
+
 @Entity
 @Table(name="discussions", indexes={@Index(name="discussionsDiscussionsCommentableTypeCommentableIdIndex", columnList="commentable_type,commentable_id")})
 public class Discussions implements Serializable {
