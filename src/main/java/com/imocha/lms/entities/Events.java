@@ -18,6 +18,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import com.imocha.lms.leads.entities.ContactTypes;
+
 @Entity
 @Table(name="events", indexes={@Index(name="eventsEventsContextableTypeContextableIdIndex", columnList="contextable_type,contextable_id")})
 public class Events implements Serializable {

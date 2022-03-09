@@ -13,7 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.lms.entities.ContactTypes;
+import com.imocha.lms.leads.entities.ContactTypes;
 import com.imocha.lms.entities.Countries;
 import com.imocha.lms.entities.Users;
 

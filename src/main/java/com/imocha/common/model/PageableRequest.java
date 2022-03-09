@@ -7,8 +7,8 @@ import lombok.Data;
 @Data
 public class PageableRequest {
 
-    private int page;
-    private int size;
-    private Direction direction;
-    private String[] properties;
+    private int page = 0;
+    private int size = 20;
+    private Direction direction = Direction.ASC;
+    private String[] properties = { "id" };
 }
