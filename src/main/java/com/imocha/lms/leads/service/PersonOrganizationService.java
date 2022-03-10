@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.imocha.lms.entities.PersonOrganization;
+import com.imocha.lms.leads.entities.PersonOrganization;
 import com.imocha.lms.leads.repositories.PersonOrganizationRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,5 +19,16 @@ public class PersonOrganizationService {
 
 	List<PersonOrganization> findByPeopleId(long peopleId) {
 		return personOrganizationRepository.findByPeopleId(peopleId);
+	}
+
+	public void delete(Long id) {
+		List<PersonOrganization> personOrganizations = personOrganizationRepository.findByPeopleId(id);
+		personOrganizations.forEach(personOrganization -> {
+			personOrganizationRepository.delete(personOrganization);
+		});
+	}
+
+	public void save(PersonOrganization personOrganization) {
+		personOrganizationRepository.save(personOrganization);
 	}
 }

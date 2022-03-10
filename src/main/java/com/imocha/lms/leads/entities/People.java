@@ -13,8 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.lms.leads.entities.ContactTypes;
-import com.imocha.lms.entities.Countries;
+import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
@@ -45,6 +44,9 @@ public class People implements Serializable {
 	@Column(name = "zip_code", length = 191)
 	private String zipCode;
 
+	@Column(name = "active")
+	private boolean active = Boolean.TRUE;
+
 	@ManyToOne
 	@JoinColumn(name = "attach_login_user_id")
 	private Users attachLoginUser;
@@ -65,9 +67,4 @@ public class People implements Serializable {
 	@JoinColumn(name = "contact_type_id")
 	private ContactTypes contactTypes;
 
-//	@OneToMany(mappedBy = "people")
-//	private Set<PersonOrganization> organizations;
-
-//	@ManyToMany(mappedBy = "persons", cascade = CascadeType.ALL)
-//	Set<PersonOrganization> organizations = new HashSet<PersonOrganization>();
 }
