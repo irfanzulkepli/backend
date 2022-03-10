@@ -7,9 +7,13 @@ import java.util.stream.Collectors;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.lostReasons.entities.LostReasons;
+import com.imocha.lms.lostReasons.model.AddLostReasonsRequest;
+import com.imocha.lms.lostReasons.model.LostReasonsPageResponse;
 import com.imocha.lms.lostReasons.model.LostReasonsResponse;
 import com.imocha.lms.lostReasons.model.UpdateLostReasonsRequest;
 import com.imocha.lms.lostReasons.repository.LostReasonsRepository;
+import com.imocha.lms.users.entities.Users;
+import com.imocha.lms.users.service.UsersService;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +28,10 @@ public class LostReasonsService {
     @Autowired
     private LostReasonsRepository lostReasonsRepository;
 
-    public Page<LostReasonsResponse> page(PageableRequest pageableRequest) {
+    @Autowired
+    private UsersService usersService;
+
+    public Page<LostReasonsPageResponse> page(PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
         int size = pageableRequest.getSize();
         Direction direction = pageableRequest.getDirection();
@@ -33,11 +40,25 @@ public class LostReasonsService {
         PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
         Page<LostReasons> lostReasonsPage = lostReasonsRepository.findAll(pageRequest);
 
-        List<LostReasonsResponse> lostReasonsResponseList = lostReasonsPage.getContent().stream().map(lostReasons -> {
-            return this.mapLossReasonsResponse(lostReasons);
-        }).collect(Collectors.toList());
+        List<LostReasonsPageResponse> lostReasonsResponseList = lostReasonsPage.getContent().stream()
+                .map(lostReasons -> {
+                    LostReasonsPageResponse pageResponse = new LostReasonsPageResponse();
+                    BeanUtils.copyProperties(lostReasons, pageResponse);
 
-        Page<LostReasonsResponse> lostReasonsResponsePageImpl = new PageImpl<>(lostReasonsResponseList, pageRequest,
+                    if (lostReasons.isActive()) {
+                        pageResponse.setActive("ACTIVE");
+                    } else {
+                        pageResponse.setActive("INACTIVE");
+                    }
+
+                    OwnerResponse ownerResponse = new OwnerResponse();
+                    BeanUtils.copyProperties(lostReasons.getUsers(), ownerResponse);
+                    pageResponse.setCreatedBy(ownerResponse);
+
+                    return pageResponse;
+                }).collect(Collectors.toList());
+
+        Page<LostReasonsPageResponse> lostReasonsResponsePageImpl = new PageImpl<>(lostReasonsResponseList, pageRequest,
                 lostReasonsPage.getTotalElements());
         return lostReasonsResponsePageImpl;
     }
@@ -67,16 +88,27 @@ public class LostReasonsService {
         return this.mapLossReasonsResponse(lostReasons);
     }
 
-    public long update(UpdateLostReasonsRequest request) {
-        LostReasons lostReasons = this.get(request.getId());
+    public long add(AddLostReasonsRequest request) {
+        Users users = usersService.get(1);
+
+        LostReasons lostReasons = new LostReasons();
+        lostReasons.setLostReason(request.getLostReason());
+        lostReasons.setUsers(users);
+        lostReasonsRepository.save(lostReasons);
+        return lostReasons.getId();
+    }
+
+    public long update(long id, UpdateLostReasonsRequest request) {
+        LostReasons lostReasons = this.get(id);
         lostReasons.setLostReason(request.getLostReason());
         lostReasonsRepository.save(lostReasons);
         return lostReasons.getId();
     }
 
     public long delete(long id) {
-        this.get(id);
-        lostReasonsRepository.deleteById(id);
-        return id;
+        LostReasons lostReasons = this.get(id);
+        lostReasons.setActive(false);
+        LostReasons savedLostReasons = lostReasonsRepository.save(lostReasons);
+        return savedLostReasons.getId();
     }
 }

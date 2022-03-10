@@ -4,6 +4,16 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.common.model.ActivityResponse;
+import com.imocha.lms.leads.entities.People;
+import com.imocha.lms.leads.model.DealsResponse;
+import com.imocha.lms.leads.model.FollowerResponse;
+import com.imocha.lms.leads.model.PeopleRequest;
+import com.imocha.lms.leads.model.PersonListResponse;
+import com.imocha.lms.leads.model.PersonPageResponse;
+import com.imocha.lms.leads.service.PeopleService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,16 +25,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.common.model.ActivityResponse;
-import com.imocha.lms.leads.entities.People;
-import com.imocha.lms.leads.model.DealsResponse;
-import com.imocha.lms.leads.model.FollowerResponse;
-import com.imocha.lms.leads.model.PeopleRequest;
-import com.imocha.lms.leads.model.PersonListResponse;
-import com.imocha.lms.leads.model.PersonPageResponse;
-import com.imocha.lms.leads.service.PeopleService;
 
 @RestController
 @RequestMapping("person")

@@ -34,9 +34,9 @@ public class DealsController {
 		return dealsService.getDealsResponse(id);
 	}
 
-	@PutMapping()
-	public long update(@RequestBody UpdateDealsRequest request) {
-		return dealsService.update(request);
+	@PutMapping("/{id}")
+	public long update(@PathVariable long id, @RequestBody UpdateDealsRequest request) {
+		return dealsService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")

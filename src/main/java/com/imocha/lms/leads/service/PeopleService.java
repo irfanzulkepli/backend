@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -80,6 +81,7 @@ public class PeopleService {
 	@Autowired
 	private PersonOrganizationService personOrganizationService;
 
+	@Lazy
 	@Autowired
 	private DealsService dealsService;
 
@@ -449,5 +451,14 @@ public class PeopleService {
 		});
 
 		return people;
+	}
+
+	public People get(long id) {
+		Optional<People> pOptional = peopleRepository.findById(id);
+		if (!pOptional.isPresent()) {
+			// TODO: throw error
+		}
+
+		return pOptional.get();
 	}
 }

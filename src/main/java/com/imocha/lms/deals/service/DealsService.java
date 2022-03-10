@@ -4,15 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.stereotype.Service;
-
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.deals.entities.Deals;
@@ -20,7 +11,10 @@ import com.imocha.lms.deals.model.DealsResponse;
 import com.imocha.lms.deals.model.UpdateDealsRequest;
 import com.imocha.lms.deals.repositories.DealsRepository;
 import com.imocha.lms.entities.Statuses;
+import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.OwnerResponse;
+import com.imocha.lms.leads.model.PeopleResponse;
+import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.lostReasons.model.LostReasonsResponse;
 import com.imocha.lms.pipelines.entities.Pipelines;
 import com.imocha.lms.pipelines.model.PipelinesResponse;
@@ -30,6 +24,15 @@ import com.imocha.lms.stages.model.StagesResponse;
 import com.imocha.lms.stages.service.StagesService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,6 +52,10 @@ public class DealsService {
 
 	@Autowired
 	private UsersService usersService;
+
+	@Lazy
+	@Autowired
+	private PeopleService peopleService;
 
 	public Page<DealsResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
@@ -94,6 +101,11 @@ public class DealsService {
 		BeanUtils.copyProperties(deals.getStages(), stagesResponse);
 		dealsResponse.setStages(stagesResponse);
 
+		People people = peopleService.get(deals.getContextableId());
+		PeopleResponse peopleResponse = new PeopleResponse();
+		BeanUtils.copyProperties(people, peopleResponse);
+		dealsResponse.setPerson(peopleResponse);
+
 		return dealsResponse;
 	}
 
@@ -111,8 +123,8 @@ public class DealsService {
 		return this.mapDealsResponse(deals);
 	}
 
-	public long update(UpdateDealsRequest request) {
-		Deals deals = this.get(request.getId());
+	public long update(long id, UpdateDealsRequest request) {
+		Deals deals = this.get(id);
 		BeanUtils.copyProperties(request, deals);
 
 		Pipelines pipelines = pipelinesService.get(request.getPipelinesId());
@@ -121,14 +133,13 @@ public class DealsService {
 		Stages stages = stagesService.get(request.getStagesId());
 		deals.setStages(stages);
 
-		Users createdBy = usersService.get(request.getCreatedById());
-		deals.setCreatedBy(createdBy);
+		deals.setContextableId(request.getPersonId());
 
 		Users owner = usersService.get(request.getOwnerId());
 		deals.setOwner(owner);
 
-		dealsRepository.save(deals);
-		return request.getId();
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
 	}
 
 	public long delete(long id) {

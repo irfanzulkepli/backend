@@ -12,6 +12,7 @@ import com.imocha.lms.deals.service.DealsService;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.pipelines.entities.Pipelines;
 import com.imocha.lms.pipelines.model.PipelinesListResponse;
+import com.imocha.lms.pipelines.model.PipelinesPageResponse;
 import com.imocha.lms.pipelines.model.PipelinesResponse;
 import com.imocha.lms.pipelines.repository.PipelinesRepository;
 import com.imocha.lms.stages.service.StagesService;
@@ -38,7 +39,7 @@ public class PipelinesService {
     @Autowired
     private StagesService stagesService;
 
-    public Page<PipelinesResponse> page(@Valid PageableRequest pageableRequest) {
+    public Page<PipelinesPageResponse> page(@Valid PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
         int size = pageableRequest.getSize();
         Direction direction = pageableRequest.getDirection();
@@ -47,10 +48,16 @@ public class PipelinesService {
         PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
         Page<Pipelines> pipelinesPage = pipelinesRepository.findAll(pageRequest);
 
-        List<PipelinesResponse> pipelinesResponseList = pipelinesPage.getContent().stream().map(pipelines -> {
+        List<PipelinesPageResponse> pipelinesResponseList = pipelinesPage.getContent().stream().map(pipelines -> {
 
-            PipelinesResponse pipelinesResponse = new PipelinesResponse();
+            PipelinesPageResponse pipelinesResponse = new PipelinesPageResponse();
             BeanUtils.copyProperties(pipelines, pipelinesResponse);
+
+            if (pipelines.isActive()) {
+                pipelinesResponse.setActive("ACTIVE");
+            } else {
+                pipelinesResponse.setActive("INACTIVE");
+            }
 
             OwnerResponse ownerResponse = new OwnerResponse();
             BeanUtils.copyProperties(pipelines.getUsers(), ownerResponse);
@@ -68,7 +75,7 @@ public class PipelinesService {
             return pipelinesResponse;
         }).collect(Collectors.toList());
 
-        Page<PipelinesResponse> pipelinesResponsePageImpl = new PageImpl<>(pipelinesResponseList, pageRequest,
+        Page<PipelinesPageResponse> pipelinesResponsePageImpl = new PageImpl<>(pipelinesResponseList, pageRequest,
                 pipelinesPage.getTotalElements());
         return pipelinesResponsePageImpl;
     }
@@ -99,8 +106,9 @@ public class PipelinesService {
     }
 
     public long delete(long id) {
-        this.get(id);
-        pipelinesRepository.deleteById(id);
-        return id;
+        Pipelines pipelines = this.get(id);
+        pipelines.setActive(false);
+        Pipelines savedPipelines = pipelinesRepository.save(pipelines);
+        return savedPipelines.getId();
     }
 }

@@ -30,6 +30,8 @@ public class LostReasons implements Serializable {
     private long id;
     @Column(name = "lost_reason", nullable = false, length = 191)
     private String lostReason;
+	@Column(name = "active")
+	private boolean active = true;
     @Column(name = "created_at")
     private Date createdAt;
     @Column(name = "updated_at")
