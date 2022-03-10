@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.leads.entities.ContactTypes;
+import com.imocha.lms.leads.model.AddContactTypeRequest;
 import com.imocha.lms.leads.model.UpdateContactTypesRequest;
 import com.imocha.lms.leads.repositories.ContactTypesRepositories;
 
@@ -24,7 +25,7 @@ public class ContactTypesService {
 	@Autowired
 	private ContactTypesRepositories contactTypesRepositories;
 		
-	public Page<ContactTypesResponse> list(PageableRequest pageableRequest) {
+	public Page<ContactTypesResponse> page(PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
         int size = pageableRequest.getSize();
         Direction direction = pageableRequest.getDirection();
@@ -45,13 +46,43 @@ public class ContactTypesService {
         		contactTypePage.getTotalElements());
         return contactTypesResponsePageImpl;		
 	}
+
+	public List<ContactTypes> list() {
+		return contactTypesRepositories.findAll();
+	}
 	
-	public ContactTypes putName(UpdateContactTypesRequest request) {
-		Optional<ContactTypes> contactTypes = contactTypesRepositories.findById(request.getId());
+	public ContactTypes update(long id, UpdateContactTypesRequest request) {
+		Optional<ContactTypes> contactTypes = contactTypesRepositories.findById(id);
 		ContactTypes updatedContactTypes = contactTypes.get();
 		updatedContactTypes.setName(request.getName());
+		updatedContactTypes.setClazz(request.getClazz());
 		contactTypesRepositories.save(updatedContactTypes);
 		return updatedContactTypes;
+	}
+
+	public ContactTypes get(long id) {
+        Optional<ContactTypes> contactTypesOpt = contactTypesRepositories.findById(id);
+        if (!contactTypesOpt.isPresent()) {
+            // TODO: throw error
+        }
+
+        return contactTypesOpt.get();
+    }
+
+	public long delete(long id) {
+        this.get(id);
+        contactTypesRepositories.deleteById(id);
+        return id;
+    }
+
+	public long addContactTypes(AddContactTypeRequest request) {
+
+		ContactTypes contactTypes = new ContactTypes();
+		contactTypes.setName(request.getName());
+		contactTypes.setClazz(request.getClazz());
+
+		ContactTypes savedContactTypes = contactTypesRepositories.save(contactTypes);
+		return savedContactTypes.getId();
 	}
 
 }

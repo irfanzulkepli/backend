@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class UpdateContactTypesRequest {
 
-	private long id;
 	private String name;
+	private String clazz;
+
 }
