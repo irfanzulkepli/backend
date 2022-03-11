@@ -6,10 +6,9 @@ import lombok.Data;
 
 @Data
 public class UpdateDealsRequest {
-    private long id;
     private String title;
     private String description;
-    private long createdById;
+    private long personId;
     private long value;
     private long pipelinesId;
     private long stagesId;

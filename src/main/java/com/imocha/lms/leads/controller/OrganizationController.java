@@ -1,11 +1,9 @@
 package com.imocha.lms.leads.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.imocha.lms.entities.Organizations;
 import com.imocha.lms.leads.repositories.OrganizationRepository;
 import com.imocha.lms.leads.service.OrganizationService;
 
@@ -19,9 +17,9 @@ public class OrganizationController {
 	@Autowired
 	OrganizationService organizationService;
 
-	@GetMapping("list")
-	public Organizations listOrganization() {
-		return organizationService.listOrganization();
-	}
+//	@GetMapping("list")
+//	public Organizations listOrganization() {
+//		return organizationService.listOrganization();
+//	}
 
 }

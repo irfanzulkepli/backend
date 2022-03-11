@@ -6,7 +6,7 @@ import javax.validation.Valid;
 
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.pipelines.model.PipelinesListResponse;
-import com.imocha.lms.pipelines.model.PipelinesResponse;
+import com.imocha.lms.pipelines.model.PipelinesPageResponse;
 import com.imocha.lms.pipelines.service.PipelinesService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class PipelinesController {
     private PipelinesService pipelinesSerive;
 
     @GetMapping("page")
-    public Page<PipelinesResponse> page(@Valid PageableRequest pageableRequest) {
+    public Page<PipelinesPageResponse> page(@Valid PageableRequest pageableRequest) {
         return pipelinesSerive.page(pageableRequest);
     }
 

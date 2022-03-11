@@ -1,6 +1,4 @@
-// Generated with g9.
-
-package com.imocha.lms.entities;
+package com.imocha.lms.leads.entities;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,7 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.lms.leads.entities.ContactTypes;
+import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;

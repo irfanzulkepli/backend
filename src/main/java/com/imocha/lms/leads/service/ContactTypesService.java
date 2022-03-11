@@ -21,36 +21,37 @@ import com.imocha.lms.leads.repositories.ContactTypesRepositories;
 
 @Service
 public class ContactTypesService {
-	
+
 	@Autowired
 	private ContactTypesRepositories contactTypesRepositories;
-		
+
 	public Page<ContactTypesResponse> page(PageableRequest pageableRequest) {
-        int page = pageableRequest.getPage();
-        int size = pageableRequest.getSize();
-        Direction direction = pageableRequest.getDirection();
-        String[] properties = pageableRequest.getProperties();
-        
-        PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
+		int page = pageableRequest.getPage();
+		int size = pageableRequest.getSize();
+		Direction direction = pageableRequest.getDirection();
+		String[] properties = pageableRequest.getProperties();
+
+		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
+
 		Page<ContactTypes> contactTypePage = contactTypesRepositories.findAll(pageRequest);
 
-        List<ContactTypesResponse> contactTypeResponseList = contactTypePage.getContent().stream().map(contactType -> {
-            
-            ContactTypesResponse contactTypesResponse = new ContactTypesResponse();
-            BeanUtils.copyProperties(contactType, contactTypesResponse);
+		List<ContactTypesResponse> contactTypeResponseList = contactTypePage.getContent().stream().map(contactType -> {
 
-            return contactTypesResponse;
-        }).collect(Collectors.toList());
-        
-        Page<ContactTypesResponse> contactTypesResponsePageImpl = new PageImpl<>(contactTypeResponseList, pageRequest,
-        		contactTypePage.getTotalElements());
-        return contactTypesResponsePageImpl;		
+			ContactTypesResponse contactTypesResponse = new ContactTypesResponse();
+			BeanUtils.copyProperties(contactType, contactTypesResponse);
+
+			return contactTypesResponse;
+		}).collect(Collectors.toList());
+
+		Page<ContactTypesResponse> contactTypesResponsePageImpl = new PageImpl<>(contactTypeResponseList, pageRequest,
+				contactTypePage.getTotalElements());
+		return contactTypesResponsePageImpl;
 	}
 
 	public List<ContactTypes> list() {
 		return contactTypesRepositories.findAll();
 	}
-	
+
 	public ContactTypes update(long id, UpdateContactTypesRequest request) {
 		Optional<ContactTypes> contactTypes = contactTypesRepositories.findById(id);
 		ContactTypes updatedContactTypes = contactTypes.get();
@@ -61,19 +62,19 @@ public class ContactTypesService {
 	}
 
 	public ContactTypes get(long id) {
-        Optional<ContactTypes> contactTypesOpt = contactTypesRepositories.findById(id);
-        if (!contactTypesOpt.isPresent()) {
-            // TODO: throw error
-        }
+		Optional<ContactTypes> contactTypesOpt = contactTypesRepositories.findById(id);
+		if (!contactTypesOpt.isPresent()) {
+			// TODO: throw error
+		}
 
-        return contactTypesOpt.get();
-    }
+		return contactTypesOpt.get();
+	}
 
 	public long delete(long id) {
-        this.get(id);
-        contactTypesRepositories.deleteById(id);
-        return id;
-    }
+		this.get(id);
+		contactTypesRepositories.deleteById(id);
+		return id;
+	}
 
 	public long addContactTypes(AddContactTypeRequest request) {
 

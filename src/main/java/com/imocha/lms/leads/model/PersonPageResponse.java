@@ -1,8 +1,8 @@
 package com.imocha.lms.leads.model;
 
-import java.util.Date;
 import java.util.List;
 
+import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.EmailResponse;
 import com.imocha.lms.common.model.PhoneResponse;
@@ -16,8 +16,6 @@ public class PersonPageResponse {
 	private Long id;
 	private String name;
 	private String address;
-	private Date createdAt;
-	private Date updatedAt;
 	private String area;
 	private String state;
 	private String city;
@@ -25,6 +23,8 @@ public class PersonPageResponse {
 
 	private Long openDealsCount;
 	private Long closedDealsCount;
+
+	private Countries country;
 
 	private ContactTypesResponse contactTypes;
 

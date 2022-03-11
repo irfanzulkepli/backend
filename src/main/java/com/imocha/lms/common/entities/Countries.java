@@ -1,6 +1,6 @@
 // Generated with g9.
 
-package com.imocha.lms.pipelines.entities;
+package com.imocha.lms.common.entities;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -11,18 +11,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "pipelines", indexes = { @Index(name = "pipelines_name_IX", columnList = "name", unique = true) })
-public class Pipelines implements Serializable {
+@Table(name = "countries", indexes = { @Index(name = "countries_code_IX", columnList = "code", unique = true),
+		@Index(name = "countries_name_IX", columnList = "name", unique = true) })
+public class Countries implements Serializable {
 
 	/** Primary key. */
 	protected static final String PK = "id";
@@ -32,14 +29,12 @@ public class Pipelines implements Serializable {
 	@Column(unique = true, nullable = false, precision = 20)
 	private long id;
 	@Column(unique = true, nullable = false, length = 191)
+	private String code;
+	@Column(unique = true, nullable = false, length = 191)
 	private String name;
-	@Column(name = "active")
-	private boolean active = true;
 	@Column(name = "created_at")
 	private Date createdAt;
 	@Column(name = "updated_at")
 	private Date updatedAt;
-	@ManyToOne
-	@JoinColumn(name = "created_by")
-	private Users users;
+
 }

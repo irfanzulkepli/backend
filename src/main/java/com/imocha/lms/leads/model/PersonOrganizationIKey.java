@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class PersonOrganizationIKey implements Serializable {
 
-	private int organizations;
-	private int people;
+	private Long organizations;
+	private Long people;
 }
