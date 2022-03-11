@@ -85,4 +85,8 @@ public class ContactTypesService {
 		return savedContactTypes.getId();
 	}
 
+	public List<ContactTypes> searchByName(String name) {		
+		return contactTypesRepositories.findByName(name);
+	}
+
 }

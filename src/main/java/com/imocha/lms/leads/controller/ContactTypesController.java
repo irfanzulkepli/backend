@@ -39,6 +39,11 @@ public class ContactTypesController {
 		return contactTypesService.list();
 	}
 
+	@GetMapping("/{name}")
+	public List<ContactTypes> searchByName(@PathVariable String name) {
+		return contactTypesService.searchByName(name);
+	}
+
 	@PutMapping("/{id}")
 	public ContactTypes update(@RequestBody UpdateContactTypesRequest request, @PathVariable long id) {
 		return contactTypesService.update(id,request);
