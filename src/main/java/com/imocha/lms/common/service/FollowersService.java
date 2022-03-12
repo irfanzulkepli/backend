@@ -1,5 +1,7 @@
 package com.imocha.lms.common.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +19,22 @@ public class FollowersService {
 	@Autowired
 	private FollowersRepository followersRepository;
 
-	public Page<Followers> getFollowersByPersonId(Long id, Pageable pageable) {
+	public Page<Followers> getFollowersByLeadsId(Long id, String leadType, Pageable pageable) {
 		Page<Followers> followers = followersRepository
-				.findByContextableTypeIgnoreCaseContainingAndContextableId("person", id, pageable);
+				.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType, id, pageable);
 
 		return followers;
+	}
+
+	public List<Followers> getFollowersByLeadsId(Long id, String leadType) {
+		return followersRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType, id);
+	}
+
+	public Followers save(Followers follower) {
+		return followersRepository.save(follower);
+	}
+
+	public void deleteById(Long id) {
+		followersRepository.deleteById(id);
 	}
 }

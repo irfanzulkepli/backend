@@ -1,9 +1,10 @@
-package com.imocha.lms.common.model;
+package com.imocha.lms.activities.model;
 
 import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
 import com.imocha.lms.leads.model.CollaboratorResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
@@ -21,6 +22,7 @@ public class ActivityResponse {
 	private List<CollaboratorResponse> collaborators;
 	private OwnerResponse createdBy;
 	private ActivityTypeResponse activityType;
+	private Statuses status;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private Date startDate;

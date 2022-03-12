@@ -12,8 +12,8 @@ public class UpdatePeopleRequest {
 	@Nullable
 	private Long contactTypesId;
 
-	private UpdateRequestModel emails;
-	private UpdateRequestModel phones;
+	private UpdateContactRequestModel emails;
+	private UpdateContactRequestModel phones;
 	private UpdatePersonOrganizationRequestModel personOrganizations;
 
 	private Long ownerId;

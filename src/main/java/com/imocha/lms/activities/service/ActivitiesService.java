@@ -23,19 +23,18 @@ import com.imocha.lms.activities.entities.ActivityCollaborator;
 import com.imocha.lms.activities.entities.ActivityParticipant;
 import com.imocha.lms.activities.entities.ActivityTypes;
 import com.imocha.lms.activities.model.ActivitiesRequest;
+import com.imocha.lms.activities.model.ActivityResponse;
 import com.imocha.lms.activities.repositories.ActivitiesCollaboratorRepository;
 import com.imocha.lms.activities.repositories.ActivitiesParticipantRepository;
 import com.imocha.lms.activities.repositories.ActivitiesRepository;
 import com.imocha.lms.activities.repositories.ActivityTypesRepository;
 import com.imocha.lms.common.entities.Statuses;
-import com.imocha.lms.common.model.ActivityResponse;
 import com.imocha.lms.common.service.StatusesService;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
 import com.imocha.lms.leads.model.CollaboratorResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.ParticipantResponse;
-import com.imocha.lms.leads.repositories.PeopleRepository;
 import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
@@ -57,10 +56,6 @@ public class ActivitiesService {
 
 	@Autowired
 	ActivityTypesRepository activityTypesRepository;
-
-	@Lazy
-	@Autowired
-	PeopleRepository peopleRepository;
 
 	@Autowired
 	UsersService usersService;

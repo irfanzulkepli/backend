@@ -19,7 +19,7 @@ public class OrganizationsResponse {
 	private String state;
 	private String zipCode;
 	private Countries country;
-	private ContactTypesResponse contactType;
+	private ContactTypesResponse contactTypes;
 	private OwnerResponse owner;
 	private List<TagResponse> tags;
 	private List<PersonsResponse> persons;

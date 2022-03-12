@@ -7,7 +7,5 @@ import lombok.Data;
 @Data
 public class UpdatePersonOrganizationRequestModel {
 
-	private List<DeletePersonOrganizationRequest> delete;
-	private List<UpdatePersonOrganizationRequest> update;
-	private List<PersonOrganizationRequest> add;
+	private List<PersonOrganizationRequest> personOrganizations;
 }

@@ -17,12 +17,23 @@ public class PersonOrganizationService {
 	@Autowired
 	private PersonOrganizationRepository personOrganizationRepository;
 
-	List<PersonOrganization> findByPeopleId(long peopleId) {
+	List<PersonOrganization> findByPeopleId(Long peopleId) {
 		return personOrganizationRepository.findByPeopleId(peopleId);
+	}
+
+	List<PersonOrganization> findByOrganizationId(Long organizationId) {
+		return personOrganizationRepository.findByOrganizationsId(organizationId);
 	}
 
 	public void delete(Long id) {
 		List<PersonOrganization> personOrganizations = personOrganizationRepository.findByPeopleId(id);
+		personOrganizations.forEach(personOrganization -> {
+			personOrganizationRepository.delete(personOrganization);
+		});
+	}
+
+	public void deleteByOrganizationId(Long id) {
+		List<PersonOrganization> personOrganizations = personOrganizationRepository.findByOrganizationsId(id);
 		personOrganizations.forEach(personOrganization -> {
 			personOrganizationRepository.delete(personOrganization);
 		});

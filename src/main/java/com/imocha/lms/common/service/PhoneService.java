@@ -29,4 +29,8 @@ public class PhoneService {
 	public Phones save(Phones phone) {
 		return phonesRepository.save(phone);
 	}
+
+	public void deleteById(Long id) {
+		phonesRepository.deleteById(id);
+	}
 }

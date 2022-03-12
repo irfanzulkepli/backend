@@ -15,6 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
@@ -22,31 +23,31 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "notes", indexes = {
-        @Index(name = "notesNotesNoteableTypeNoteableIdIndex", columnList = "noteable_type,noteable_id") })
+		@Index(name = "notesNotesNoteableTypeNoteableIdIndex", columnList = "noteable_type,noteable_id") })
 public class Notes implements Serializable {
 
-    /** Primary key. */
-    protected static final String PK = "id";
+	/** Primary key. */
+	protected static final String PK = "id";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false, precision = 20)
-    private long id;
-    @Column(nullable = false)
-    private String note;
-    @Column(name = "noteable_type", nullable = false, length = 191)
-    private String noteableType;
-    @Column(name = "noteable_id", nullable = false, precision = 20)
-    private long noteableId;
-    @Column(name = "created_at")
-    private Date createdAt;
-    @Column(name = "updated_at")
-    private Date updatedAt;
-    @ManyToOne
-    @JoinColumn(name = "created_by")
-    private Users users;
-    @ManyToOne
-    @JoinColumn(name = "status_id")
-    private Statuses statuses;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(unique = true, nullable = false, precision = 20)
+	private long id;
+	@Column(nullable = false)
+	private String note;
+	@Column(name = "noteable_type", nullable = false, length = 191)
+	private String noteableType;
+	@Column(name = "noteable_id", nullable = false, precision = 20)
+	private long noteableId;
+	@Column(name = "created_at")
+	private Date createdAt;
+	@Column(name = "updated_at")
+	private Date updatedAt;
+	@ManyToOne
+	@JoinColumn(name = "created_by")
+	private Users users;
+	@ManyToOne
+	@JoinColumn(name = "status_id")
+	private Statuses statuses;
 
 }

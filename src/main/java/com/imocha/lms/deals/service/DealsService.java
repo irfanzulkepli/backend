@@ -4,13 +4,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.stereotype.Service;
+
 import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.deals.entities.Deals;
 import com.imocha.lms.deals.model.DealsResponse;
 import com.imocha.lms.deals.model.UpdateDealsRequest;
 import com.imocha.lms.deals.repositories.DealsRepository;
-import com.imocha.lms.entities.Statuses;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.PeopleResponse;
@@ -24,15 +33,6 @@ import com.imocha.lms.stages.model.StagesResponse;
 import com.imocha.lms.stages.service.StagesService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -148,7 +148,7 @@ public class DealsService {
 		return id;
 	}
 
-	public List<Statuses> getPersonDealsCountByStatus(Long id) {
+	public List<Statuses> getLeadsDealsCountByStatus(Long id) {
 		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person",
 				id);
 
@@ -171,22 +171,22 @@ public class DealsService {
 		return dealsList.size();
 	}
 
-	public Long getPersonOpenDealsCountByStatus(Long id) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person",
+	public Long getLeadsOpenDealsCountByStatus(Long id, String leadType) {
+		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType,
 				id);
 
 		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_open")).count();
 	}
 
-	public Long getPersonClosedDealsCountByStatus(Long id) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person",
+	public Long getLeadsClosedDealsCountByStatus(Long id, String leadType) {
+		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType,
 				id);
 
 		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_closed")).count();
 	}
 
-	public List<Deals> getDealsByPersonId(Long id) {
-		List<Deals> deals = dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person", id);
+	public List<Deals> getDealsByLeadId(Long id, String leadType) {
+		List<Deals> deals = dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType, id);
 
 		return deals;
 	}

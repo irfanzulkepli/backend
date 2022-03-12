@@ -10,5 +10,7 @@ public interface PersonOrganizationRepository extends JpaRepository<PersonOrgani
 
 	List<PersonOrganization> findByPeopleId(Long peopleId);
 
+	List<PersonOrganization> findByOrganizationsId(Long organizationId);
+
 	Long deleteByPeopleId(Long peopleId);
 }

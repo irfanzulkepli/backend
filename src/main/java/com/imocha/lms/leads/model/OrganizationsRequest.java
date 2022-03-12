@@ -10,6 +10,7 @@ public class OrganizationsRequest {
 	private String name;
 	private Long contactTypesId;
 	private Long ownerId;
+	private Long createdById;
 
 	@Nullable
 	private String address;

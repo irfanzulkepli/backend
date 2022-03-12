@@ -11,5 +11,7 @@ import com.imocha.lms.leads.entities.People;
 public interface PeopleRepository extends JpaRepository<People, Long> {
 	Page<People> findByActiveTrue(Pageable pageable);
 
+	List<People> findByActiveTrue();
+
 	List<People> findByNameIgnoreCaseContaining(String name);
 }

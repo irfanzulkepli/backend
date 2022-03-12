@@ -7,6 +7,5 @@ import lombok.Data;
 @Data
 public class UpdateFollowerRequest {
 
-	private List<Long> add;
-	private List<Long> delete;
+	private List<Long> followerIds;
 }

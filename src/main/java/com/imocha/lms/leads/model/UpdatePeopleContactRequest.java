@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class UpdatePeopleContactRequest {
 
-	private UpdateRequestModel emails;
-	private UpdateRequestModel phones;
+	private UpdateContactRequestModel emails;
+	private UpdateContactRequestModel phones;
 }

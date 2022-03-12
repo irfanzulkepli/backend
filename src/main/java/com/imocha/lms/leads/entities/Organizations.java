@@ -39,6 +39,9 @@ public class Organizations implements Serializable {
 	@Column(name = "zip_code", length = 191)
 	private String zipCode;
 
+	@Column(name = "active")
+	private boolean active = Boolean.TRUE;
+
 	@ManyToOne
 	@JoinColumn(name = "country_id")
 	private Countries countries;

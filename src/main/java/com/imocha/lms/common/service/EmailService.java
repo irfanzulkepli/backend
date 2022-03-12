@@ -26,6 +26,10 @@ public class EmailService {
 				}).collect(Collectors.toList());
 	}
 
+	public Emails getById(Long id) {
+		return emailsRepository.getById(id);
+	}
+
 	public Emails save(Emails email) {
 		return emailsRepository.save(email);
 	}
