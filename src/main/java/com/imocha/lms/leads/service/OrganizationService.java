@@ -481,8 +481,8 @@ public class OrganizationService {
 		List<PersonsResponse> personResponses = personOrganizations.stream().map(personOrganization -> {
 			PersonsResponse personResponse = new PersonsResponse();
 
-			personResponse.setId(personOrganization.getOrganizations().getId());
-			personResponse.setName(personOrganization.getOrganizations().getName());
+			personResponse.setId(personOrganization.getPeople().getId());
+			personResponse.setName(personOrganization.getPeople().getName());
 			personResponse.setJobTitle(personOrganization.getJobTitle());
 
 			ContactTypesResponse organizationContactTypes = new ContactTypesResponse();
