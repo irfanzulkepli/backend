@@ -1,6 +1,6 @@
 // Generated with g9.
 
-package com.imocha.lms.entities;
+package com.imocha.lms.activities.entities;
 
 import java.io.Serializable;
 import java.util.Date;

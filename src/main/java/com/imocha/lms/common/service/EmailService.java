@@ -29,4 +29,8 @@ public class EmailService {
 	public Emails save(Emails email) {
 		return emailsRepository.save(email);
 	}
+
+	public void deleteById(Long id) {
+		emailsRepository.deleteById(id);
+	}
 }

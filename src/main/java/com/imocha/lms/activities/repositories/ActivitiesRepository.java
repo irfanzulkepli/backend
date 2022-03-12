@@ -1,10 +1,10 @@
-package com.imocha.lms.common.repositories;
+package com.imocha.lms.activities.repositories;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.imocha.lms.entities.Activities;
+import com.imocha.lms.activities.entities.Activities;
 
 public interface ActivitiesRepository extends JpaRepository<Activities, Long> {
 

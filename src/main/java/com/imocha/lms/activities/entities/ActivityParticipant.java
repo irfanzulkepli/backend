@@ -1,6 +1,6 @@
 // Generated with g9.
 
-package com.imocha.lms.entities;
+package com.imocha.lms.activities.entities;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -12,22 +12,25 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.lms.users.entities.Users;
+import com.imocha.lms.leads.entities.People;
 
-@Entity(name = "activity_collaborator")
-@IdClass(ActivityCollaborator.ActivityCollaboratorId.class)
-public class ActivityCollaborator implements Serializable {
+import lombok.Data;
+
+@Entity(name = "activity_participant")
+@IdClass(ActivityParticipant.ActivityParticipantId.class)
+public class ActivityParticipant implements Serializable {
 
 	/**
 	 * IdClass for primary key when using JPA annotations
 	 */
-	public static class ActivityCollaboratorId implements Serializable {
-		Activities activities;
-		Users users;
+	@Data
+	public static class ActivityParticipantId implements Serializable {
+		Long activities;
+		Long people;
 	}
 
 	/** Primary key. */
-	protected static final String PK = "ActivityCollaboratorPrimary";
+	protected static final String PK = "ActivityParticipantPrimary";
 
 	@ManyToOne(optional = false)
 	@Id
@@ -35,11 +38,11 @@ public class ActivityCollaborator implements Serializable {
 	private Activities activities;
 	@ManyToOne(optional = false)
 	@Id
-	@JoinColumn(name = "user_id", nullable = false)
-	private Users users;
+	@JoinColumn(name = "person_id", nullable = false)
+	private People people;
 
 	/** Default constructor. */
-	public ActivityCollaborator() {
+	public ActivityParticipant() {
 		super();
 	}
 
@@ -62,21 +65,21 @@ public class ActivityCollaborator implements Serializable {
 	}
 
 	/**
-	 * Access method for users.
+	 * Access method for people.
 	 *
-	 * @return the current value of users
+	 * @return the current value of people
 	 */
-	public Users getUsers() {
-		return users;
+	public People getPeople() {
+		return people;
 	}
 
 	/**
-	 * Setter method for users.
+	 * Setter method for people.
 	 *
-	 * @param aUsers the new value for users
+	 * @param aPeople the new value for people
 	 */
-	public void setUsers(Users aUsers) {
-		users = aUsers;
+	public void setPeople(People aPeople) {
+		people = aPeople;
 	}
 
 	/** Temporary value holder for group key fragment activitiesId */
@@ -112,74 +115,74 @@ public class ActivityCollaborator implements Serializable {
 		}
 	}
 
-	/** Temporary value holder for group key fragment usersId */
-	private transient long tempUsersId;
+	/** Temporary value holder for group key fragment peopleId */
+	private transient long tempPeopleId;
 
 	/**
-	 * Gets the key fragment id for member users. If this.users is null, a temporary
-	 * stored value for the key fragment will be returned. The temporary value is
-	 * set by setUsersId. This behavior is required by some persistence libraries to
-	 * allow fetching of objects in arbitrary order.
+	 * Gets the key fragment id for member people. If this.people is null, a
+	 * temporary stored value for the key fragment will be returned. The temporary
+	 * value is set by setPeopleId. This behavior is required by some persistence
+	 * libraries to allow fetching of objects in arbitrary order.
 	 *
 	 * @return Current (or temporary) value of the key fragment
-	 * @see Users
+	 * @see People
 	 */
-	public long getUsersId() {
-		return (getUsers() == null ? tempUsersId : getUsers().getId());
+	public long getPeopleId() {
+		return (getPeople() == null ? tempPeopleId : getPeople().getId());
 	}
 
 	/**
-	 * Sets the key fragment id from member users. If this.users is null, the passed
-	 * value will be temporary stored, and returned by subsequent calls to
-	 * getUsersId. This behaviour is required by some persistence libraries to allow
-	 * fetching of objects in arbitrary order.
+	 * Sets the key fragment id from member people. If this.people is null, the
+	 * passed value will be temporary stored, and returned by subsequent calls to
+	 * getPeopleId. This behaviour is required by some persistence libraries to
+	 * allow fetching of objects in arbitrary order.
 	 *
 	 * @param aId New value for the key fragment
-	 * @see Users
+	 * @see People
 	 */
-	public void setUsersId(long aId) {
-		if (getUsers() == null) {
-			tempUsersId = aId;
+	public void setPeopleId(long aId) {
+		if (getPeople() == null) {
+			tempPeopleId = aId;
 		} else {
-			getUsers().setId(aId);
+			getPeople().setId(aId);
 		}
 	}
 
 	/**
-	 * Compares the key for this instance with another ActivityCollaborator.
+	 * Compares the key for this instance with another ActivityParticipant.
 	 *
 	 * @param other The object to compare to
-	 * @return True if other object is instance of class ActivityCollaborator and
-	 *         the key objects are equal
+	 * @return True if other object is instance of class ActivityParticipant and the
+	 *         key objects are equal
 	 */
 	private boolean equalKeys(Object other) {
 		if (this == other) {
 			return true;
 		}
-		if (!(other instanceof ActivityCollaborator)) {
+		if (!(other instanceof ActivityParticipant)) {
 			return false;
 		}
-		ActivityCollaborator that = (ActivityCollaborator) other;
+		ActivityParticipant that = (ActivityParticipant) other;
 		if (this.getActivitiesId() != that.getActivitiesId()) {
 			return false;
 		}
-		if (this.getUsersId() != that.getUsersId()) {
+		if (this.getPeopleId() != that.getPeopleId()) {
 			return false;
 		}
 		return true;
 	}
 
 	/**
-	 * Compares this instance with another ActivityCollaborator.
+	 * Compares this instance with another ActivityParticipant.
 	 *
 	 * @param other The object to compare to
 	 * @return True if the objects are the same
 	 */
 	@Override
 	public boolean equals(Object other) {
-		if (!(other instanceof ActivityCollaborator))
+		if (!(other instanceof ActivityParticipant))
 			return false;
-		return this.equalKeys(other) && ((ActivityCollaborator) other).equalKeys(this);
+		return this.equalKeys(other) && ((ActivityParticipant) other).equalKeys(this);
 	}
 
 	/**
@@ -193,7 +196,7 @@ public class ActivityCollaborator implements Serializable {
 		int result = 17;
 		i = (int) (getActivitiesId() ^ (getActivitiesId() >>> 32));
 		result = 37 * result + i;
-		i = (int) (getUsersId() ^ (getUsersId() >>> 32));
+		i = (int) (getPeopleId() ^ (getPeopleId() >>> 32));
 		result = 37 * result + i;
 		return result;
 	}
@@ -205,9 +208,9 @@ public class ActivityCollaborator implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer("[ActivityCollaborator |");
+		StringBuffer sb = new StringBuffer("[ActivityParticipant |");
 		sb.append(" activitiesId=").append(getActivitiesId());
-		sb.append(" usersId=").append(getUsersId());
+		sb.append(" peopleId=").append(getPeopleId());
 		sb.append("]");
 		return sb.toString();
 	}
@@ -220,7 +223,7 @@ public class ActivityCollaborator implements Serializable {
 	public Map<String, Object> getPrimaryKey() {
 		Map<String, Object> ret = new LinkedHashMap<String, Object>(6);
 		ret.put("activitiesId", Long.valueOf(getActivitiesId()));
-		ret.put("usersId", Long.valueOf(getUsersId()));
+		ret.put("peopleId", Long.valueOf(getPeopleId()));
 		return ret;
 	}
 
