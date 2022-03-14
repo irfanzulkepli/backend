@@ -1,8 +1,33 @@
 package com.imocha.lms.deals.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.common.entities.Statuses;
+import com.imocha.lms.common.model.StatusesResponse;
+import com.imocha.lms.common.service.StatusesService;
+import com.imocha.lms.deals.entities.Deals;
+import com.imocha.lms.deals.entities.LostReasons;
+import com.imocha.lms.deals.model.DealsResponse;
+import com.imocha.lms.deals.model.LostReasonsResponse;
+import com.imocha.lms.deals.model.UpdateDealsRequest;
+import com.imocha.lms.deals.model.UpdateDealsToLostRequest;
+import com.imocha.lms.deals.pipelines.entities.Pipelines;
+import com.imocha.lms.deals.pipelines.entities.Stages;
+import com.imocha.lms.deals.pipelines.model.PipelinesResponse;
+import com.imocha.lms.deals.pipelines.model.StagesResponse;
+import com.imocha.lms.deals.pipelines.service.PipelinesService;
+import com.imocha.lms.deals.pipelines.service.StagesService;
+import com.imocha.lms.deals.repositories.DealsRepository;
+import com.imocha.lms.leads.entities.People;
+import com.imocha.lms.leads.model.OwnerResponse;
+import com.imocha.lms.leads.model.PeopleResponse;
+import com.imocha.lms.leads.service.PeopleService;
+import com.imocha.lms.users.entities.Users;
+import com.imocha.lms.users.service.UsersService;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,27 +37,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
-
-import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.common.entities.Statuses;
-import com.imocha.lms.common.model.StatusesResponse;
-import com.imocha.lms.deals.entities.Deals;
-import com.imocha.lms.deals.model.DealsResponse;
-import com.imocha.lms.deals.model.UpdateDealsRequest;
-import com.imocha.lms.deals.repositories.DealsRepository;
-import com.imocha.lms.leads.entities.People;
-import com.imocha.lms.leads.model.OwnerResponse;
-import com.imocha.lms.leads.model.PeopleResponse;
-import com.imocha.lms.leads.service.PeopleService;
-import com.imocha.lms.lostReasons.model.LostReasonsResponse;
-import com.imocha.lms.pipelines.entities.Pipelines;
-import com.imocha.lms.pipelines.model.PipelinesResponse;
-import com.imocha.lms.pipelines.service.PipelinesService;
-import com.imocha.lms.stages.entities.Stages;
-import com.imocha.lms.stages.model.StagesResponse;
-import com.imocha.lms.stages.service.StagesService;
-import com.imocha.lms.users.entities.Users;
-import com.imocha.lms.users.service.UsersService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +61,12 @@ public class DealsService {
 	@Autowired
 	private PeopleService peopleService;
 
+	@Autowired
+	private StatusesService statusesService;
+
+	@Autowired
+	private LostReasonsService lostReasonsService;
+
 	public Page<DealsResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
 		int size = pageableRequest.getSize();
@@ -67,7 +77,7 @@ public class DealsService {
 		Page<Deals> dealsPage = this.dealsRepository.findAll(pageRequest);
 
 		List<DealsResponse> dealsResponseList = dealsPage.getContent().stream().map(deals -> {
-			return this.mapDealsResponse(deals);
+			return this.mapDealsToDealsResponse(deals);
 		}).collect(Collectors.toList());
 
 		Page<DealsResponse> dealsResponsePageImpl = new PageImpl<>(dealsResponseList, pageRequest,
@@ -75,7 +85,24 @@ public class DealsService {
 		return dealsResponsePageImpl;
 	}
 
-	private DealsResponse mapDealsResponse(Deals deals) {
+	public List<DealsResponse> listPipelineView(long id) {
+		if (id <= 0) {
+			id = pipelinesService.getFirstPipelines().getId();
+		}
+
+		Pipelines pipelines = pipelinesService.get(id);
+		List<Deals> dealsList = dealsRepository.findByPipelines(pipelines);
+		List<DealsResponse> responseList = new ArrayList<DealsResponse>();
+
+		for (Deals deals : dealsList) {
+			DealsResponse response = this.mapDealsToDealsResponse(deals);
+			responseList.add(response);
+		}
+
+		return responseList;
+	}
+
+	private DealsResponse mapDealsToDealsResponse(Deals deals) {
 		DealsResponse dealsResponse = new DealsResponse();
 		BeanUtils.copyProperties(deals, dealsResponse);
 
@@ -120,7 +147,7 @@ public class DealsService {
 
 	public DealsResponse getDealsResponse(long id) {
 		Deals deals = this.get(id);
-		return this.mapDealsResponse(deals);
+		return this.mapDealsToDealsResponse(deals);
 	}
 
 	public long update(long id, UpdateDealsRequest request) {
@@ -137,6 +164,31 @@ public class DealsService {
 
 		Users owner = usersService.get(request.getOwnerId());
 		deals.setOwner(owner);
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
+	public long updateDealsToLost(long id, UpdateDealsToLostRequest request) {
+		Deals deals = this.get(id);
+
+		Statuses statuses = statusesService.findLostStatuses();
+		deals.setStatuses(statuses);
+
+		LostReasons lostReasons = lostReasonsService.get(request.getLostReasonsId());
+		deals.setLostReasons(lostReasons);
+
+		deals.setComment(request.getComment());
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
+	public long updateDealsToWon(long id) {
+		Deals deals = this.get(id);
+
+		Statuses statuses = statusesService.findWonStatuses();
+		deals.setStatuses(statuses);
 
 		Deals savedDeals = dealsRepository.save(deals);
 		return savedDeals.getId();

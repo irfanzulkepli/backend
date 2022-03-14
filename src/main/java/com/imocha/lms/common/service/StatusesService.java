@@ -31,4 +31,16 @@ public class StatusesService {
 		}
 		return statusOptional.get();
 	}
+
+	public Statuses findLostStatuses(){
+		return this.findStatusesByName("status_lost");
+	}
+
+	public Statuses findWonStatuses(){
+		return this.findStatusesByName("status_won");
+	}
+
+	public Statuses findStatusesByName(String name){
+		return statusesRepository.findByName(name);
+	}
 }

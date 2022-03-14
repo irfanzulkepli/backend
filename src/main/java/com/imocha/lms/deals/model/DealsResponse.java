@@ -4,11 +4,10 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.imocha.lms.common.model.StatusesResponse;
+import com.imocha.lms.deals.pipelines.model.PipelinesResponse;
+import com.imocha.lms.deals.pipelines.model.StagesResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.PeopleResponse;
-import com.imocha.lms.lostReasons.model.LostReasonsResponse;
-import com.imocha.lms.pipelines.model.PipelinesResponse;
-import com.imocha.lms.stages.model.StagesResponse;
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;

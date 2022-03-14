@@ -12,9 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import com.imocha.lms.common.entities.Statuses;
-import com.imocha.lms.lostReasons.entities.LostReasons;
-import com.imocha.lms.pipelines.entities.Pipelines;
-import com.imocha.lms.stages.entities.Stages;
+import com.imocha.lms.deals.pipelines.entities.Pipelines;
+import com.imocha.lms.deals.pipelines.entities.Stages;
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
