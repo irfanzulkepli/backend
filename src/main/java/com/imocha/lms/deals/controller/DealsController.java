@@ -31,8 +31,8 @@ public class DealsController {
 		return dealsService.page(pageableRequest);
 	}
 
-	@GetMapping("list/pipeline-view/{id}")
-	public List<DealsResponse> listPipelineView(@PathVariable long id) {
+	@GetMapping({ "list/pipeline", "list/pipeline/{id}" })
+	public List<DealsResponse> listPipelineView(@PathVariable(required = false) String id) {
 		return dealsService.listPipelineView(id);
 	}
 
