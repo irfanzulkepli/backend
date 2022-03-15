@@ -10,4 +10,5 @@ public class EmailResponse {
 	private Long typeId;
 	private String contextableType;
 	private Long contextableId;
+	private ContactTypesResponse type;
 }

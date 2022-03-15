@@ -294,8 +294,13 @@ public class PeopleService {
 
 		People people = peopleOptional.get();
 
+		ContactTypes contactType = contactTypesService.get(requestModel.getContactTypesId());
+		people.setContactTypes(contactType);
+
 		Users owner = usersService.get(requestModel.getOwnerId());
+		people.setName(requestModel.getName());
 		people.setOwner(owner);
+		people.setUpdatedAt(dateNow);
 
 		return peopleRepository.save(people);
 	}
@@ -663,17 +668,46 @@ public class PeopleService {
 		personResponse.setContactTypes(contactTypes);
 
 		List<EmailResponse> emails = emailService.getPersonEmailById(id);
-		personResponse.setEmails(emails);
+		List<EmailResponse> emailResponses = emails.stream().map(email -> {
+			EmailResponse emailResponse = new EmailResponse();
+			BeanUtils.copyProperties(email, emailResponse);
+
+			if ((email.getTypeId() != null)) {
+				PhoneEmailTypes type = phoneEmailService.get(email.getTypeId());
+				ContactTypesResponse typeResponse = new ContactTypesResponse();
+				BeanUtils.copyProperties(type, typeResponse);
+
+				email.setType(typeResponse);
+			}
+
+			return emailResponse;
+		}).collect(Collectors.toList());
+		personResponse.setEmails(emailResponses);
 
 		List<PhoneResponse> phones = phoneService.getPersonPhoneById(id);
-		personResponse.setPhones(phones);
+		List<PhoneResponse> phoneResponses = phones.stream().map(phone -> {
+			PhoneResponse phoneResponse = new PhoneResponse();
+			BeanUtils.copyProperties(phone, phoneResponse);
+
+			if ((phone.getTypeId() != null)) {
+				PhoneEmailTypes type = phoneEmailService.get(phone.getTypeId());
+				ContactTypesResponse typeResponse = new ContactTypesResponse();
+				BeanUtils.copyProperties(type, typeResponse);
+
+				phone.setType(typeResponse);
+			}
+
+			return phoneResponse;
+		}).collect(Collectors.toList());
+		personResponse.setPhones(phoneResponses);
 
 		OwnerResponse owner = new OwnerResponse();
 		BeanUtils.copyProperties(people.getOwner(), owner);
 
-		personResponse.setCountry(people.getCountries());
+		personResponse.setCountries(people.getCountries());
 
 		personResponse.setOwner(owner);
+		personResponse.setCreatedAt(people.getCreatedAt());
 
 		List<PersonOrganization> personOrganizations = personOrganizationService.findByPeopleId(id);
 

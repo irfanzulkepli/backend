@@ -1,7 +1,9 @@
 package com.imocha.lms.leads.model;
 
+import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.EmailResponse;
@@ -24,7 +26,7 @@ public class PersonPageResponse {
 	private Long openDealsCount;
 	private Long closedDealsCount;
 
-	private Countries country;
+	private Countries countries;
 
 	private ContactTypesResponse contactTypes;
 
@@ -37,4 +39,7 @@ public class PersonPageResponse {
 	private List<OrganizationResponse> organizations;
 
 	private List<TagResponse> tags;
+
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private Date createdAt;
 }

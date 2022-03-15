@@ -17,19 +17,19 @@ import lombok.Data;
 @Entity(name = "phone_email_types")
 public class PhoneEmailTypes implements Serializable {
 
-    /** Primary key. */
-    protected static final String PK = "id";
+	/** Primary key. */
+	protected static final String PK = "id";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false, precision = 20)
-    private long id;
-    @Column(nullable = false, length = 191)
-    private String name;
-    @Column(name = "class", length = 191)
-    private String class_;
-    @Column(name = "created_at")
-    private Date createdAt;
-    @Column(name = "updated_at")
-    private Date updatedAt;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(unique = true, nullable = false, precision = 20)
+	private long id;
+	@Column(nullable = false, length = 191)
+	private String name;
+	@Column(name = "class", length = 191)
+	private String clazz;
+	@Column(name = "created_at")
+	private Date createdAt;
+	@Column(name = "updated_at")
+	private Date updatedAt;
 }
