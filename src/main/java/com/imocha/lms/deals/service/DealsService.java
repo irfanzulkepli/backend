@@ -1,6 +1,7 @@
 package com.imocha.lms.deals.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,6 +12,7 @@ import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.common.service.StatusesService;
 import com.imocha.lms.deals.entities.Deals;
 import com.imocha.lms.deals.entities.LostReasons;
+import com.imocha.lms.deals.model.AddDealsRequest;
 import com.imocha.lms.deals.model.DealsResponse;
 import com.imocha.lms.deals.model.LostReasonsResponse;
 import com.imocha.lms.deals.model.UpdateDealsRequest;
@@ -169,10 +171,51 @@ public class DealsService {
 		return savedDeals.getId();
 	}
 
+	public long updateStage(long id,long stagesId) {
+		Deals deals = this.get(id);
+		Stages stages = stagesService.get(stagesId);
+		deals.setStages(stages);
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
+	public long updateValue(long id,long dealValue) {
+		Deals deals = this.get(id);
+		deals.setValue(dealValue);
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
+	public long updatePersonId(long id,long personId) {
+		Deals deals = this.get(id);
+		deals.setContextableId(personId);
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
+	public long updateExpiredDate(long id,Date expiredDate) {
+		Deals deals = this.get(id);
+		deals.setExpiredAt(expiredDate);
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
+	public long updateDescription(long id,String description) {
+		Deals deals = this.get(id);
+		deals.setDescription(description);
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
 	public long updateDealsToLost(long id, UpdateDealsToLostRequest request) {
 		Deals deals = this.get(id);
 
-		Statuses statuses = statusesService.findLostStatuses();
+		Statuses statuses = statusesService.findDealLostStatuses();
 		deals.setStatuses(statuses);
 
 		LostReasons lostReasons = lostReasonsService.get(request.getLostReasonsId());
@@ -187,7 +230,7 @@ public class DealsService {
 	public long updateDealsToWon(long id) {
 		Deals deals = this.get(id);
 
-		Statuses statuses = statusesService.findWonStatuses();
+		Statuses statuses = statusesService.findDealWonStatuses();
 		deals.setStatuses(statuses);
 
 		Deals savedDeals = dealsRepository.save(deals);
@@ -241,5 +284,34 @@ public class DealsService {
 		List<Deals> deals = dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType, id);
 
 		return deals;
+	}
+
+	public long addDeals(AddDealsRequest request) {
+		Users user = usersService.get(1);
+		Deals deals = new Deals();
+
+		deals.setContextableType("App\\Models\\CRM\\Person\\Person");
+		Statuses statuses = statusesService.findDealOpenStatuses();
+		deals.setStatuses(statuses);
+
+		deals.setCreatedBy(user);
+		deals.setTitle(request.getTitle());
+		deals.setDescription(request.getDescription());
+		deals.setExpiredAt(request.getExpiredAt());
+		deals.setValue(request.getValue());
+		
+		Pipelines pipelines = pipelinesService.get(request.getPipelinesId());
+		deals.setPipelines(pipelines);
+
+		Stages stages = stagesService.get(request.getStagesId());
+		deals.setStages(stages);
+
+		deals.setContextableId(request.getPersonId());
+
+		Users owner = usersService.get(request.getOwnerId());
+		deals.setOwner(owner);
+		log.info(deals.toString());
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
 	}
 }

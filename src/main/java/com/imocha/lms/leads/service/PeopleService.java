@@ -474,7 +474,7 @@ public class PeopleService {
 		Users createdBy = usersService.get(peopleRequest.getCreatedBy());
 		people.setCreatedBy(createdBy);
 
-		ContactTypes contactTypes = contactTypesService.get(peopleRequest.getContactTypesId());
+		ContactTypes contactTypes = contactTypesService.findById(peopleRequest.getContactTypesId());
 		people.setContactTypes(contactTypes);
 
 		if ((peopleRequest.getCountryId() != null)) {
@@ -557,7 +557,7 @@ public class PeopleService {
 		Users createdBy = usersService.get(peopleRequest.getCreatedBy());
 		people.setCreatedBy(createdBy);
 
-		ContactTypes contactTypes = contactTypesService.get(peopleRequest.getContactTypesId());
+		ContactTypes contactTypes = contactTypesService.findById(peopleRequest.getContactTypesId());
 		people.setContactTypes(contactTypes);
 
 		if ((peopleRequest.getCountryId() != null)) {

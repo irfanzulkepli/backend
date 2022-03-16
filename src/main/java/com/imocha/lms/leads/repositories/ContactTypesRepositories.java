@@ -7,5 +7,5 @@ import java.util.List;
 import com.imocha.lms.leads.entities.ContactTypes;
 
 public interface ContactTypesRepositories extends JpaRepository<ContactTypes, Long> {
-    List<ContactTypes> findByName(String name);
+    List<ContactTypes> findByNameContaining(String name);
 }

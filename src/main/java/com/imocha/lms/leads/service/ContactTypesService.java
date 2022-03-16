@@ -10,7 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import net.bytebuddy.implementation.bytecode.Throw;
 
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.common.model.ContactTypesResponse;
@@ -48,10 +52,6 @@ public class ContactTypesService {
 		return contactTypesResponsePageImpl;
 	}
 
-	public List<ContactTypes> list() {
-		return contactTypesRepositories.findAll();
-	}
-
 	public ContactTypes update(long id, UpdateContactTypesRequest request) {
 		Optional<ContactTypes> contactTypes = contactTypesRepositories.findById(id);
 		ContactTypes updatedContactTypes = contactTypes.get();
@@ -61,19 +61,27 @@ public class ContactTypesService {
 		return updatedContactTypes;
 	}
 
-	public ContactTypes get(long id) {
+	public ContactTypes findById(long id) {
 		Optional<ContactTypes> contactTypesOpt = contactTypesRepositories.findById(id);
-		if (!contactTypesOpt.isPresent()) {
-			// TODO: throw error
+		ContactTypes contactTypes = contactTypesOpt.orElseThrow(() -> 
+		new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+
+		if (!contactTypes.isActive()) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity has been deleted");
 		}
 
-		return contactTypesOpt.get();
+		return contactTypes;
 	}
 
 	public long delete(long id) {
-		this.get(id);
-		contactTypesRepositories.deleteById(id);
-		return id;
+		Optional<ContactTypes> contactTypesOpt = contactTypesRepositories.findById(id);
+		ContactTypes contactTypes = contactTypesOpt.orElseThrow(() -> 
+		new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+
+		contactTypes.setActive(false);
+		contactTypesRepositories.save(contactTypes);
+
+		return contactTypes.getId();
 	}
 
 	public long addContactTypes(AddContactTypeRequest request) {
@@ -87,7 +95,7 @@ public class ContactTypesService {
 	}
 
 	public List<ContactTypes> searchByName(String name) {		
-		return contactTypesRepositories.findByName(name);
+		return contactTypesRepositories.findByNameContaining(name);
 	}
 
 }

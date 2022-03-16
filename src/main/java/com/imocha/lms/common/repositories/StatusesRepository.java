@@ -8,4 +8,6 @@ public interface StatusesRepository extends JpaRepository<Statuses, Long> {
 
     public Statuses findByName(String name);
 
+    public Statuses findByNameAndType(String name, String type);
+
 }

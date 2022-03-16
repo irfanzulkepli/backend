@@ -140,7 +140,7 @@ public class OrganizationService {
 		Users createdBy = usersService.get(requestModel.getCreatedById());
 		organization.setUsers(createdBy);
 
-		ContactTypes contactTypes = contactTypesService.get(requestModel.getContactTypesId());
+		ContactTypes contactTypes = contactTypesService.findById(requestModel.getContactTypesId());
 		organization.setContactTypes(contactTypes);
 
 		if ((requestModel.getCountryId() != null)) {
@@ -170,7 +170,7 @@ public class OrganizationService {
 		Users createdBy = usersService.get(requestModel.getCreatedById());
 		organization.setUsers(createdBy);
 
-		ContactTypes contactTypes = contactTypesService.get(requestModel.getContactTypesId());
+		ContactTypes contactTypes = contactTypesService.findById(requestModel.getContactTypesId());
 		organization.setContactTypes(contactTypes);
 
 		if ((requestModel.getCountryId() != null)) {

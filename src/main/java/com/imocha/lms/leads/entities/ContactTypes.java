@@ -30,6 +30,8 @@ public class ContactTypes implements Serializable {
     private Date createdAt;
     @Column(name = "updated_at")
     private Date updatedAt;
+    @Column(name = "active")
+	private boolean active = Boolean.TRUE;
     
     public ContactTypes() {}
     

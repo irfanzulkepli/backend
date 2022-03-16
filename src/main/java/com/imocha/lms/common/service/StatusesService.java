@@ -32,15 +32,19 @@ public class StatusesService {
 		return statusOptional.get();
 	}
 
-	public Statuses findLostStatuses(){
-		return this.findStatusesByName("status_lost");
+	public Statuses findDealLostStatuses(){
+		return this.findStatusesByNameAndType("status_lost", "deal");
 	}
 
-	public Statuses findWonStatuses(){
-		return this.findStatusesByName("status_won");
+	public Statuses findDealWonStatuses(){
+		return this.findStatusesByNameAndType("status_won", "deal");
 	}
 
-	public Statuses findStatusesByName(String name){
-		return statusesRepository.findByName(name);
+	public Statuses findDealOpenStatuses(){
+		return this.findStatusesByNameAndType("status_open", "deal");
+	}
+
+	public Statuses findStatusesByNameAndType(String name, String type){
+		return statusesRepository.findByNameAndType(name, type);
 	}
 }

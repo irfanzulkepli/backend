@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.imocha.common.model.PageableRequest;
@@ -34,13 +35,8 @@ public class ContactTypesController {
 		return contactTypesService.page(pageableRequest);
 	}
 
-	@GetMapping("/list")
-	public List<ContactTypes> list() {
-		return contactTypesService.list();
-	}
-
-	@GetMapping("/{name}")
-	public List<ContactTypes> searchByName(@PathVariable String name) {
+	@GetMapping("/name")
+	public List<ContactTypes> searchByName(@RequestParam(required = false) String name) {
 		return contactTypesService.searchByName(name);
 	}
 
