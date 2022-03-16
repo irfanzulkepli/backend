@@ -29,7 +29,7 @@ public class PhoneEmailService {
 		List<ContactTypesResponse> contactTypesResponses = phoneEmailTypes.stream().map(phoneEmailType -> {
 			ContactTypesResponse contactTypesResponse = new ContactTypesResponse();
 			BeanUtils.copyProperties(phoneEmailType, contactTypesResponse);
-			contactTypesResponse.setClazz(phoneEmailType.getClass_());
+			contactTypesResponse.setClazz(phoneEmailType.getClazz());
 
 			return contactTypesResponse;
 		}).collect(Collectors.toList());

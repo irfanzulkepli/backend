@@ -18,8 +18,8 @@ public class StagesController {
     @Autowired
     private StagesService stagesService;
 
-    @GetMapping("list/pipelines/{id}")
-    public List<StagesListResponse> listByPipelinesId(@PathVariable long id) {
+    @GetMapping({ "list/pipelines", "list/pipelines/{id}" })
+    public List<StagesListResponse> listByPipelinesId(@PathVariable(required = false) String id) {
         return this.stagesService.listByPipelinesId(id);
     }
 }
