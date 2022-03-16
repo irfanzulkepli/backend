@@ -12,17 +12,25 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Version;
 
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
 
 @Data
-@Entity(name = "stages")
-public class Stages implements Serializable {
+@Entity(name = "default_stages")
+public class DefaultStages implements Serializable {
 
     /** Primary key. */
     protected static final String PK = "id";
+
+    /**
+     * The optimistic lock. Available via standard bean get/set operations.
+     */
+    @Version
+    @Column(name = "LOCK_FLAG")
+    private Integer lockFlag;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,9 +49,5 @@ public class Stages implements Serializable {
     @ManyToOne
     @JoinColumn(name = "created_by")
     private Users users;
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "pipeline_id", nullable = false)
-    private Pipelines pipelines;
-	@Column(name = "active")
-	private boolean active = true;
+
 }

@@ -15,28 +15,15 @@ import com.imocha.lms.users.entities.Users;
 import lombok.Data;
 
 @Data
-public class DealsResponse {
+public class DealsListResponse {
 	private long id;
 	private String title;
 	private long value;
-	private String contextableType;
-	private long contextableId;
-
-	private String description;
-
-	@JsonFormat(pattern = "yyyy-MM-dd")
-	private Date expiredAt;
-
-	private String comment;
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date createdAt;
 
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private Date updatedAt;
-
 	private Users createdBy;
-	private LostReasonsResponse lostReasons;
 	private OwnerResponse owner;
 	private PipelinesResponse pipelines;
 	private StagesResponse stages;
@@ -44,4 +31,5 @@ public class DealsResponse {
 	private PeopleResponse person;
 
 	private List<TagResponse> tags;
+    
 }

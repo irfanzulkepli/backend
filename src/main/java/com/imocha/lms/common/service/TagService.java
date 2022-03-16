@@ -34,6 +34,10 @@ public class TagService {
 		return tagResponses;
 	}
 
+	public List<Taggables> getTaggableByTaggableIdAndTaggableType(Long id, String leadType) {
+		return this.taggableRepository.findByTaggableTypeIgnoreCaseContainingAndTaggableId(leadType, id);
+	}
+
 	public List<TagResponse> getLeadsTagById(Long id, String leadType) {
 		return this.taggableRepository.findByTaggableTypeIgnoreCaseContainingAndTaggableId(leadType, id).stream()
 				.map(taggable -> {

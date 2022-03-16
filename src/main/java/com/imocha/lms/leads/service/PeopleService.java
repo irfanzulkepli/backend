@@ -294,7 +294,7 @@ public class PeopleService {
 
 		People people = peopleOptional.get();
 
-		ContactTypes contactType = contactTypesService.get(requestModel.getContactTypesId());
+		ContactTypes contactType = contactTypesService.findById(requestModel.getContactTypesId());
 		people.setContactTypes(contactType);
 
 		Users owner = usersService.get(requestModel.getOwnerId());

@@ -34,9 +34,7 @@ public class UsersService {
 	}
 
 	public Users get(long id) {
-		System.out.println("id: " + id);
 		Optional<Users> uOptional = usersRepository.findById(id);
-		System.out.println("user: " + uOptional);
 		if (!uOptional.isPresent()) {
 			// TODO: throw error
 		}

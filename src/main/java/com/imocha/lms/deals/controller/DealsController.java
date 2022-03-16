@@ -7,8 +7,11 @@ import javax.validation.Valid;
 
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.deals.model.AddDealsRequest;
+import com.imocha.lms.deals.model.DealsListResponse;
+import com.imocha.lms.deals.model.DealsPageResponse;
 import com.imocha.lms.deals.model.DealsResponse;
 import com.imocha.lms.deals.model.UpdateDealsRequest;
+import com.imocha.lms.deals.model.UpdateDealsTagRequest;
 import com.imocha.lms.deals.model.UpdateDealsToLostRequest;
 import com.imocha.lms.deals.service.DealsService;
 
@@ -30,12 +33,12 @@ public class DealsController {
 	private DealsService dealsService;
 
 	@GetMapping("page")
-	public Page<DealsResponse> page(@Valid PageableRequest pageableRequest) {
+	public Page<DealsPageResponse> page(@Valid PageableRequest pageableRequest) {
 		return dealsService.page(pageableRequest);
 	}
 
 	@GetMapping({ "list/pipeline", "list/pipeline/{id}" })
-	public List<DealsResponse> listPipelineView(@PathVariable(required = false) String id) {
+	public List<DealsListResponse> listPipelineView(@PathVariable(required = false) String id) {
 		return dealsService.listPipelineView(id);
 	}
 
@@ -52,6 +55,16 @@ public class DealsController {
 	@PutMapping("/won/{id}")
 	public long updateDealsToLost(@PathVariable long id) {
 		return dealsService.updateDealsToWon(id);
+	}
+
+	@PutMapping("/tag/{id}")
+	public long updateTag(@PathVariable long id, @RequestBody UpdateDealsTagRequest request) {
+		return dealsService.updateDealsTag(id, request);
+	}
+
+	@PutMapping("/stage/{oldId}/{newId}")
+	public long updateAllDealsToNewStage(@PathVariable long oldId, @PathVariable long newId) {
+		return dealsService.updateAllDealsToNewStage(oldId, newId);
 	}
 
 	@PutMapping("/{id}")

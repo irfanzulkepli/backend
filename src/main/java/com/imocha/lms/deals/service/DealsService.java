@@ -8,14 +8,21 @@ import java.util.stream.Collectors;
 
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.common.entities.Statuses;
+import com.imocha.lms.common.entities.Taggables;
+import com.imocha.lms.common.entities.Tags;
 import com.imocha.lms.common.model.StatusesResponse;
+import com.imocha.lms.common.model.TagResponse;
 import com.imocha.lms.common.service.StatusesService;
+import com.imocha.lms.common.service.TagService;
 import com.imocha.lms.deals.entities.Deals;
 import com.imocha.lms.deals.entities.LostReasons;
 import com.imocha.lms.deals.model.AddDealsRequest;
+import com.imocha.lms.deals.model.DealsListResponse;
+import com.imocha.lms.deals.model.DealsPageResponse;
 import com.imocha.lms.deals.model.DealsResponse;
 import com.imocha.lms.deals.model.LostReasonsResponse;
 import com.imocha.lms.deals.model.UpdateDealsRequest;
+import com.imocha.lms.deals.model.UpdateDealsTagRequest;
 import com.imocha.lms.deals.model.UpdateDealsToLostRequest;
 import com.imocha.lms.deals.pipelines.entities.Pipelines;
 import com.imocha.lms.deals.pipelines.entities.Stages;
@@ -54,6 +61,7 @@ public class DealsService {
 	@Autowired
 	private PipelinesService pipelinesService;
 
+	@Lazy
 	@Autowired
 	private StagesService stagesService;
 
@@ -70,7 +78,10 @@ public class DealsService {
 	@Autowired
 	private LostReasonsService lostReasonsService;
 
-	public Page<DealsResponse> page(PageableRequest pageableRequest) {
+	@Autowired
+	private TagService tagService;
+
+	public Page<DealsPageResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
 		int size = pageableRequest.getSize();
 		Direction direction = pageableRequest.getDirection();
@@ -79,33 +90,96 @@ public class DealsService {
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
 		Page<Deals> dealsPage = this.dealsRepository.findAll(pageRequest);
 
-		List<DealsResponse> dealsResponseList = dealsPage.getContent().stream().map(deals -> {
-			return this.mapDealsToDealsResponse(deals);
+		List<DealsPageResponse> dealsResponseList = dealsPage.getContent().stream().map(deals -> {
+			return this.mapDealsToDealsPageResponse(deals);
 		}).collect(Collectors.toList());
 
-		Page<DealsResponse> dealsResponsePageImpl = new PageImpl<>(dealsResponseList, pageRequest,
+		Page<DealsPageResponse> dealsResponsePageImpl = new PageImpl<>(dealsResponseList, pageRequest,
 				dealsPage.getTotalElements());
 		return dealsResponsePageImpl;
 	}
 
-	public List<DealsResponse> listPipelineView(String id) {
+	private DealsPageResponse mapDealsToDealsPageResponse(Deals deals) {
+		DealsPageResponse pageResponse = new DealsPageResponse();
+		BeanUtils.copyProperties(deals, pageResponse);
+
+		StatusesResponse statusesResponse = new StatusesResponse();
+		BeanUtils.copyProperties(deals.getStatuses(), statusesResponse);
+		pageResponse.setStatuses(statusesResponse);
+
+		OwnerResponse ownerResponse = new OwnerResponse();
+		BeanUtils.copyProperties(deals.getOwner(), ownerResponse);
+		pageResponse.setOwner(ownerResponse);
+
+		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), "deals");
+		pageResponse.setTags(tags);
+
+		return pageResponse;
+	}
+
+	public List<DealsListResponse> listPipelineView(String id) {
 		long pipelinesId = 0;
 		if (StringUtils.isBlank(id)) {
 			pipelinesId = pipelinesService.getFirstPipelines().getId();
-        } else {
-            pipelinesId = Integer.parseInt(id);
-        }
+		} else {
+			pipelinesId = Integer.parseInt(id);
+		}
 
 		Pipelines pipelines = pipelinesService.get(pipelinesId);
 		List<Deals> dealsList = dealsRepository.findByPipelines(pipelines);
-		List<DealsResponse> responseList = new ArrayList<DealsResponse>();
+		List<DealsListResponse> responseList = new ArrayList<DealsListResponse>();
 
 		for (Deals deals : dealsList) {
-			DealsResponse response = this.mapDealsToDealsResponse(deals);
+			DealsListResponse response = this.mapDealsToDealsListResponse(deals);
 			responseList.add(response);
 		}
 
 		return responseList;
+	}
+
+	private DealsListResponse mapDealsToDealsListResponse(Deals deals) {
+		DealsListResponse dealsResponse = new DealsListResponse();
+		BeanUtils.copyProperties(deals, dealsResponse);
+
+		StatusesResponse statusesResponse = new StatusesResponse();
+		BeanUtils.copyProperties(deals.getStatuses(), statusesResponse);
+		dealsResponse.setStatuses(statusesResponse);
+
+		OwnerResponse ownerResponse = new OwnerResponse();
+		BeanUtils.copyProperties(deals.getOwner(), ownerResponse);
+		dealsResponse.setOwner(ownerResponse);
+
+		PipelinesResponse pipelinesResponse = new PipelinesResponse();
+		BeanUtils.copyProperties(deals.getPipelines(), pipelinesResponse);
+		dealsResponse.setPipelines(pipelinesResponse);
+
+		StagesResponse stagesResponse = new StagesResponse();
+		BeanUtils.copyProperties(deals.getStages(), stagesResponse);
+		dealsResponse.setStages(stagesResponse);
+
+		People people = peopleService.get(deals.getContextableId());
+		PeopleResponse peopleResponse = new PeopleResponse();
+		BeanUtils.copyProperties(people, peopleResponse);
+		dealsResponse.setPerson(peopleResponse);
+
+		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), "deals");
+		dealsResponse.setTags(tags);
+
+		return dealsResponse;
+	}
+
+	public Deals get(long id) {
+		Optional<Deals> dOptional = dealsRepository.findById(id);
+		if (!dOptional.isPresent()) {
+			// TODO: throw error;
+		}
+
+		return dOptional.get();
+	}
+
+	public DealsResponse getDealsResponse(long id) {
+		Deals deals = this.get(id);
+		return this.mapDealsToDealsResponse(deals);
 	}
 
 	private DealsResponse mapDealsToDealsResponse(Deals deals) {
@@ -139,21 +213,10 @@ public class DealsService {
 		BeanUtils.copyProperties(people, peopleResponse);
 		dealsResponse.setPerson(peopleResponse);
 
+		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), "deals");
+		dealsResponse.setTags(tags);
+
 		return dealsResponse;
-	}
-
-	public Deals get(long id) {
-		Optional<Deals> dOptional = dealsRepository.findById(id);
-		if (!dOptional.isPresent()) {
-			// TODO: throw error;
-		}
-
-		return dOptional.get();
-	}
-
-	public DealsResponse getDealsResponse(long id) {
-		Deals deals = this.get(id);
-		return this.mapDealsToDealsResponse(deals);
 	}
 
 	public long update(long id, UpdateDealsRequest request) {
@@ -239,6 +302,47 @@ public class DealsService {
 
 		Deals savedDeals = dealsRepository.save(deals);
 		return savedDeals.getId();
+	}
+
+	public long updateDealsTag(long id, UpdateDealsTagRequest request) {
+		Deals deals = this.get(id);
+
+		List<Taggables> taggablesList = tagService.getTaggableByTaggableIdAndTaggableType(deals.getId(), "deals");
+		for (Taggables taggables : taggablesList) {
+			tagService.deleteByEntity(taggables);
+		}
+
+		for (long tagId : request.getTagIds()) {
+			Tags tag = tagService.getByTagId(tagId);
+
+			Taggables taggable = new Taggables();
+			taggable.setTaggableId(deals.getId());
+			taggable.setTaggableType("deals");
+			taggable.setTags(tag);
+
+			tagService.save(taggable);
+		}
+
+		Deals savedDeals = dealsRepository.save(deals);
+		return savedDeals.getId();
+	}
+
+	public int checkDealsExistByStages(Stages stages) {
+		List<Deals> dealsList = dealsRepository.findByStages(stages);
+		return dealsList.size();
+	}
+
+	public long updateAllDealsToNewStage(long oldStageId, long newStageId) {
+		Stages oldStages = stagesService.get(oldStageId);
+		Stages newStages = stagesService.get(newStageId);
+
+		List<Deals> dealsList = dealsRepository.findByStages(oldStages);
+		for (Deals deals : dealsList) {
+			deals.setStages(newStages);
+		}
+		dealsRepository.saveAll(dealsList);
+
+		return newStages.getId();
 	}
 
 	public long delete(long id) {
