@@ -14,6 +14,9 @@ import com.imocha.lms.deals.model.UpdateDealsRequest;
 import com.imocha.lms.deals.model.UpdateDealsTagRequest;
 import com.imocha.lms.deals.model.UpdateDealsToLostRequest;
 import com.imocha.lms.deals.service.DealsService;
+import com.imocha.lms.leads.entities.People;
+import com.imocha.lms.leads.model.FollowerResponse;
+import com.imocha.lms.leads.model.UpdateFollowerRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,6 +48,16 @@ public class DealsController {
 	@GetMapping("/{id}")
 	public DealsResponse get(@PathVariable long id) {
 		return dealsService.getDealsResponse(id);
+	}
+
+	@GetMapping("{id}/followers/page")
+	public Page<FollowerResponse> pageFollowers(@Valid PageableRequest pageableRequest, @PathVariable("id") Long id) {
+		return dealsService.getFollowersByPersonId(id, pageableRequest);
+	}
+
+	@PutMapping("/{id}/followers")
+	public People updateFollowers(@RequestBody UpdateFollowerRequest requestModel, @PathVariable("id") Long id) {
+		return dealsService.updateFollowers(requestModel, id);
 	}
 
 	@PutMapping("/lost/{id}")

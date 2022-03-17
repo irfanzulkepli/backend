@@ -7,11 +7,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
+import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.common.model.TagResponse;
+import com.imocha.lms.common.service.FollowersService;
 import com.imocha.lms.common.service.StatusesService;
 import com.imocha.lms.common.service.TagService;
 import com.imocha.lms.deals.entities.Deals;
@@ -32,13 +35,18 @@ import com.imocha.lms.deals.pipelines.service.PipelinesService;
 import com.imocha.lms.deals.pipelines.service.StagesService;
 import com.imocha.lms.deals.repositories.DealsRepository;
 import com.imocha.lms.leads.entities.People;
+import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.PeopleResponse;
+import com.imocha.lms.leads.model.UpdateFollowerRequest;
+import com.imocha.lms.leads.repositories.PeopleRepository;
 import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -46,13 +54,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class DealsService {
+
+	Logger logger = LoggerFactory.getLogger(PeopleService.class);
+
+	Date dateNow = new Date();
 
 	@Autowired
 	private DealsRepository dealsRepository;
@@ -80,6 +94,12 @@ public class DealsService {
 
 	@Autowired
 	private TagService tagService;
+
+	@Autowired
+	private PeopleRepository peopleRepository;
+	
+	@Autowired
+	private FollowersService followersService;
 
 	public Page<DealsPageResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
@@ -175,6 +195,77 @@ public class DealsService {
 		}
 
 		return dOptional.get();
+	}
+
+	public Page<FollowerResponse> getFollowersByPersonId(Long id, PageableRequest pageableRequest) {
+		int page = pageableRequest.getPage();
+		int size = pageableRequest.getSize();
+		Direction direction = pageableRequest.getDirection();
+		String[] properties = pageableRequest.getProperties();
+
+		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
+		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, "deal", pageRequest);
+
+		List<FollowerResponse> followerResponses = followerPage.getContent().stream().map(follower -> {
+			FollowerResponse followerRes = new FollowerResponse();
+
+			Long openDeals = getLeadsOpenDealsCountByStatus(follower.getPeople().getId(), "deal");
+			Long closedDeals = getLeadsClosedDealsCountByStatus(follower.getPeople().getId(), "deal");
+
+			OwnerResponse owner = new OwnerResponse();
+			BeanUtils.copyProperties(follower.getPeople().getOwner(), owner);
+
+			ContactTypesResponse contactTypes = new ContactTypesResponse();
+			BeanUtils.copyProperties(follower.getPeople().getContactTypes(), contactTypes);
+
+			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(), "deal");
+
+			followerRes.setTags(tags);
+			followerRes.setOwner(owner);
+			followerRes.setName(follower.getPeople().getName());
+			followerRes.setClosedDealsCount(closedDeals);
+			followerRes.setOpenDealsCount(openDeals);
+			followerRes.setId(follower.getId());
+			followerRes.setPeopleId(follower.getPeople().getId());
+			followerRes.setContactTypes(contactTypes);
+
+			return followerRes;
+		}).collect(Collectors.toList());
+
+		Page<FollowerResponse> followerResponsePageImpl = new PageImpl<>(followerResponses, pageRequest,
+				followerPage.getTotalElements());
+		return followerResponsePageImpl;
+	}
+
+	public People updateFollowers(UpdateFollowerRequest requestModel, Long id) {
+		Optional<People> peopleOptional = peopleRepository.findById(id);
+
+		if (peopleOptional.isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
+		}
+
+		People people = peopleOptional.get();
+		List<Followers> followers = followersService.getFollowersByLeadsId(id, "person");
+		followers.forEach(follower -> {
+			followersService.delete(follower);
+		});
+
+		requestModel.getFollowerIds().forEach(followerId -> {
+			Followers newFollower = new Followers();
+			People follower = peopleRepository.getById(followerId);
+
+			logger.info("follower" + follower);
+
+			newFollower.setContextableId(people.getId());
+			newFollower.setContextableType("person");
+			newFollower.setCreatedAt(dateNow);
+			newFollower.setUpdatedAt(dateNow);
+			newFollower.setPeople(follower);
+
+			followersService.save(newFollower);
+		});
+
+		return people;
 	}
 
 	public DealsResponse getDealsResponse(long id) {

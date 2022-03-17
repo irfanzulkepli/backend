@@ -22,6 +22,8 @@ public class DealsListResponse {
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date createdAt;
+	private String description;
+	private String comment;
 
 	private Users createdBy;
 	private OwnerResponse owner;
