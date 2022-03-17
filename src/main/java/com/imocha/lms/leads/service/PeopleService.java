@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -74,7 +76,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PeopleService {
 
-	static Date dateNow = new Date();
+	Logger logger = LoggerFactory.getLogger(PeopleService.class);
+
+	Date dateNow = new Date();
 
 	@Autowired
 	private PeopleRepository peopleRepository;
@@ -239,6 +243,7 @@ public class PeopleService {
 			followerRes.setClosedDealsCount(closedDeals);
 			followerRes.setOpenDealsCount(openDeals);
 			followerRes.setId(follower.getId());
+			followerRes.setPeopleId(follower.getPeople().getId());
 			followerRes.setContactTypes(contactTypes);
 
 			return followerRes;
@@ -315,12 +320,14 @@ public class PeopleService {
 		People people = peopleOptional.get();
 		List<Followers> followers = followersService.getFollowersByLeadsId(id, "person");
 		followers.forEach(follower -> {
-			followersService.deleteById(follower.getId());
+			followersService.delete(follower);
 		});
 
 		requestModel.getFollowerIds().forEach(followerId -> {
 			Followers newFollower = new Followers();
 			People follower = peopleRepository.getById(followerId);
+
+			logger.info("follower" + follower);
 
 			newFollower.setContextableId(people.getId());
 			newFollower.setContextableType("person");
@@ -667,38 +674,10 @@ public class PeopleService {
 		BeanUtils.copyProperties(people, personResponse);
 		personResponse.setContactTypes(contactTypes);
 
-		List<EmailResponse> emails = emailService.getPersonEmailById(id);
-		List<EmailResponse> emailResponses = emails.stream().map(email -> {
-			EmailResponse emailResponse = new EmailResponse();
-			BeanUtils.copyProperties(email, emailResponse);
-
-			if ((email.getTypeId() != null)) {
-				PhoneEmailTypes type = phoneEmailService.get(email.getTypeId());
-				ContactTypesResponse typeResponse = new ContactTypesResponse();
-				BeanUtils.copyProperties(type, typeResponse);
-
-				email.setType(typeResponse);
-			}
-
-			return emailResponse;
-		}).collect(Collectors.toList());
+		List<EmailResponse> emailResponses = emailService.getPersonEmailById(id);
 		personResponse.setEmails(emailResponses);
 
-		List<PhoneResponse> phones = phoneService.getPersonPhoneById(id);
-		List<PhoneResponse> phoneResponses = phones.stream().map(phone -> {
-			PhoneResponse phoneResponse = new PhoneResponse();
-			BeanUtils.copyProperties(phone, phoneResponse);
-
-			if ((phone.getTypeId() != null)) {
-				PhoneEmailTypes type = phoneEmailService.get(phone.getTypeId());
-				ContactTypesResponse typeResponse = new ContactTypesResponse();
-				BeanUtils.copyProperties(type, typeResponse);
-
-				phone.setType(typeResponse);
-			}
-
-			return phoneResponse;
-		}).collect(Collectors.toList());
+		List<PhoneResponse> phoneResponses = phoneService.getPersonPhoneById(id);
 		personResponse.setPhones(phoneResponses);
 
 		OwnerResponse owner = new OwnerResponse();

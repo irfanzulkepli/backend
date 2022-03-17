@@ -1,5 +1,7 @@
 package com.imocha.lms.common.model;
 
+import com.imocha.lms.common.entities.PhoneEmailTypes;
+
 import lombok.Data;
 
 @Data
@@ -10,5 +12,5 @@ public class PhoneResponse {
 	private Long typeId;
 	private String contextableType;
 	private Long contextableId;
-	private ContactTypesResponse type;
+	private PhoneEmailTypes type;
 }

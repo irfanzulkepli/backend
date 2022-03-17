@@ -35,6 +35,11 @@ public class ContactTypesController {
 		return contactTypesService.page(pageableRequest);
 	}
 
+	@GetMapping("list")
+	public List<ContactTypesResponse> list(@Valid PageableRequest pageableRequest) {
+		return contactTypesService.list();
+	}
+
 	@GetMapping("/name")
 	public List<ContactTypes> searchByName(@RequestParam(required = false) String name) {
 		return contactTypesService.searchByName(name);
@@ -42,7 +47,7 @@ public class ContactTypesController {
 
 	@PutMapping("/{id}")
 	public ContactTypes update(@RequestBody UpdateContactTypesRequest request, @PathVariable long id) {
-		return contactTypesService.update(id,request);
+		return contactTypesService.update(id, request);
 	}
 
 	@PostMapping()
@@ -51,7 +56,7 @@ public class ContactTypesController {
 	}
 
 	@DeleteMapping("/{id}")
-    public long delete(@PathVariable long id) {
-        return contactTypesService.delete(id);
-    }
+	public long delete(@PathVariable long id) {
+		return contactTypesService.delete(id);
+	}
 }

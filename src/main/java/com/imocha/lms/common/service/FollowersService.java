@@ -34,6 +34,10 @@ public class FollowersService {
 		return followersRepository.save(follower);
 	}
 
+	public void delete(Followers follower) {
+		followersRepository.delete(follower);
+	}
+
 	public void deleteById(Long id) {
 		followersRepository.deleteById(id);
 	}

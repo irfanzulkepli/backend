@@ -258,6 +258,19 @@ public class ActivitiesService {
 		return populateActivityResponse(activity);
 	}
 
+	public List<ActivityTypeResponse> listActivityTypes() {
+		List<ActivityTypes> activityTypes = activityTypesRepository.findAll();
+
+		List<ActivityTypeResponse> activityTypeResponses = activityTypes.stream().map(activityType -> {
+			ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
+			BeanUtils.copyProperties(activityType, activityTypeResponse);
+
+			return activityTypeResponse;
+		}).collect(Collectors.toList());
+
+		return activityTypeResponses;
+	}
+
 	private ActivityResponse populateActivityResponse(Activities activity) {
 
 		ActivityResponse activityResponse = new ActivityResponse();

@@ -21,6 +21,7 @@ public class PhoneService {
 		return this.phonesRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person", id).stream()
 				.map(phone -> {
 					PhoneResponse phoneResponse = new PhoneResponse();
+					phoneResponse.setType(phone.getContactTypes());
 					BeanUtils.copyProperties(phone, phoneResponse);
 					return phoneResponse;
 				}).collect(Collectors.toList());

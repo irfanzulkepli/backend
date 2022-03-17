@@ -1,7 +1,9 @@
 package com.imocha.lms.leads.model;
 
+import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.TagResponse;
@@ -26,4 +28,6 @@ public class OrganizationsResponse {
 	private Long openDealsCount;
 	private Long closedDealsCount;
 
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private Date createdAt;
 }

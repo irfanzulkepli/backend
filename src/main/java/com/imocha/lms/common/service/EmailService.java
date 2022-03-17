@@ -3,6 +3,8 @@ package com.imocha.lms.common.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,8 @@ import com.imocha.lms.common.repositories.EmailsRepository;
 @Service
 public class EmailService {
 
+	Logger logger = LoggerFactory.getLogger(EmailService.class);
+
 	@Autowired
 	private EmailsRepository emailsRepository;
 
@@ -21,6 +25,7 @@ public class EmailService {
 		return this.emailsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person", id).stream()
 				.map(email -> {
 					EmailResponse emailResponse = new EmailResponse();
+					emailResponse.setType(email.getContactTypes());
 					BeanUtils.copyProperties(email, emailResponse);
 					return emailResponse;
 				}).collect(Collectors.toList());

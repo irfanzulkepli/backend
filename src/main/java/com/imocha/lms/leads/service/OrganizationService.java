@@ -62,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class OrganizationService {
 
-	static Date dateNow = new Date();
+	Date dateNow = new Date();
 
 	@Lazy
 	@Autowired
@@ -298,6 +298,7 @@ public class OrganizationService {
 			followerRes.setClosedDealsCount(closedDeals);
 			followerRes.setOpenDealsCount(openDeals);
 			followerRes.setId(follower.getId());
+			followerRes.setPeopleId(follower.getPeople().getId());
 			followerRes.setContactTypes(contactTypes);
 
 			return followerRes;
@@ -498,7 +499,7 @@ public class OrganizationService {
 
 		organizationResponse.setClosedDealsCount(closedDeals);
 		organizationResponse.setOpenDealsCount(openDeals);
-
+		organizationResponse.setCreatedAt(organization.getCreatedAt());
 		organizationResponse.setPersons(personResponses);
 
 		List<TagResponse> tags = tagService.getLeadsTagById(organization.getId(), "organization");

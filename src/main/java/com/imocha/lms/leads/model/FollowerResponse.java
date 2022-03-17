@@ -11,6 +11,7 @@ import lombok.Data;
 public class FollowerResponse {
 
 	private Long id;
+	private Long peopleId;
 	private String name;
 	private Long openDealsCount;
 	private Long closedDealsCount;

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.imocha.common.model.PageableRequest;
@@ -55,7 +54,7 @@ public class PersonController {
 	}
 
 	@GetMapping("{id}/followers/page")
-	public Page<FollowerResponse> listFollowers(@Valid PageableRequest pageableRequest, @RequestParam("id") Long id) {
+	public Page<FollowerResponse> listFollowers(@Valid PageableRequest pageableRequest, @PathVariable("id") Long id) {
 		return peopleService.getFollowersByPersonId(id, pageableRequest);
 	}
 

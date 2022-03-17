@@ -4,13 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.common.model.ContactTypesResponse;
-import com.imocha.lms.leads.entities.ContactTypes;
-import com.imocha.lms.leads.model.AddContactTypeRequest;
-import com.imocha.lms.leads.model.UpdateContactTypesRequest;
-import com.imocha.lms.leads.repositories.ContactTypesRepositories;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +13,13 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.common.model.ContactTypesResponse;
+import com.imocha.lms.leads.entities.ContactTypes;
+import com.imocha.lms.leads.model.AddContactTypeRequest;
+import com.imocha.lms.leads.model.UpdateContactTypesRequest;
+import com.imocha.lms.leads.repositories.ContactTypesRepositories;
 
 @Service
 public class ContactTypesService {
@@ -61,8 +61,8 @@ public class ContactTypesService {
 
 	public ContactTypes findById(long id) {
 		Optional<ContactTypes> contactTypesOpt = contactTypesRepositories.findById(id);
-		ContactTypes contactTypes = contactTypesOpt.orElseThrow(() -> 
-		new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		ContactTypes contactTypes = contactTypesOpt
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		if (!contactTypes.isActive()) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity has been deleted");
@@ -73,8 +73,8 @@ public class ContactTypesService {
 
 	public long delete(long id) {
 		Optional<ContactTypes> contactTypesOpt = contactTypesRepositories.findById(id);
-		ContactTypes contactTypes = contactTypesOpt.orElseThrow(() -> 
-		new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		ContactTypes contactTypes = contactTypesOpt
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		contactTypes.setActive(false);
 		contactTypesRepositories.save(contactTypes);
@@ -92,8 +92,21 @@ public class ContactTypesService {
 		return savedContactTypes.getId();
 	}
 
-	public List<ContactTypes> searchByName(String name) {		
+	public List<ContactTypes> searchByName(String name) {
 		return contactTypesRepositories.findByNameContaining(name);
+	}
+
+	public List<ContactTypesResponse> list() {
+		List<ContactTypes> contactTypes = contactTypesRepositories.findAll();
+		List<ContactTypesResponse> contactTypeResponseList = contactTypes.stream().map(contactType -> {
+
+			ContactTypesResponse contactTypesResponse = new ContactTypesResponse();
+			BeanUtils.copyProperties(contactType, contactTypesResponse);
+
+			return contactTypesResponse;
+		}).collect(Collectors.toList());
+
+		return contactTypeResponseList;
 	}
 
 }

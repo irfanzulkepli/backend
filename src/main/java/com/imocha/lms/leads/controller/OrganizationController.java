@@ -56,13 +56,13 @@ public class OrganizationController {
 		return organizationService.getById(id);
 	}
 
-	@GetMapping("{id}/followers")
+	@GetMapping("{id}/followers/page")
 	public Page<FollowerResponse> getFollowersById(@Valid PageableRequest pageableRequest,
 			@PathVariable("id") Long id) {
 		return organizationService.getFollowersByOrganizationId(id, pageableRequest);
 	}
 
-	@GetMapping("{id}/activities")
+	@GetMapping("{id}/activities/list")
 	public List<ActivityResponse> getActivitiesById(@PathVariable("id") Long id) {
 		return organizationService.getOrganizationActivitiesById(id);
 	}
