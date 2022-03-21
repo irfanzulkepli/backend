@@ -11,6 +11,7 @@ import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.common.model.TagResponse;
@@ -40,10 +41,15 @@ import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.leads.model.UpdateFollowerRequest;
 import com.imocha.lms.leads.repositories.PeopleRepository;
+import com.imocha.lms.leads.model.OrganizationsResponse;
+import com.imocha.lms.leads.model.OwnerResponse;
+import com.imocha.lms.leads.model.PeopleResponse;
+import com.imocha.lms.leads.service.OrganizationService;
 import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
 
+import org.apache.catalina.startup.ContextConfig.ContextXml;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +92,10 @@ public class DealsService {
 	@Autowired
 	private PeopleService peopleService;
 
+	@Lazy
+	@Autowired
+	private OrganizationService organizationService;
+
 	@Autowired
 	private StatusesService statusesService;
 
@@ -97,7 +107,7 @@ public class DealsService {
 
 	@Autowired
 	private PeopleRepository peopleRepository;
-	
+
 	@Autowired
 	private FollowersService followersService;
 
@@ -131,7 +141,7 @@ public class DealsService {
 		BeanUtils.copyProperties(deals.getOwner(), ownerResponse);
 		pageResponse.setOwner(ownerResponse);
 
-		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), "deals");
+		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), ContextableTypes.DEAL);
 		pageResponse.setTags(tags);
 
 		return pageResponse;
@@ -177,12 +187,17 @@ public class DealsService {
 		BeanUtils.copyProperties(deals.getStages(), stagesResponse);
 		dealsResponse.setStages(stagesResponse);
 
-		People people = peopleService.get(deals.getContextableId());
-		PeopleResponse peopleResponse = new PeopleResponse();
-		BeanUtils.copyProperties(people, peopleResponse);
-		dealsResponse.setPerson(peopleResponse);
+		if (deals.getContextableType().equals(ContextableTypes.PERSON)) {
+			People people = peopleService.get(deals.getContextableId());
+			PeopleResponse peopleResponse = new PeopleResponse();
+			BeanUtils.copyProperties(people, peopleResponse);
+			dealsResponse.setPerson(peopleResponse);
+		} else if (deals.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			OrganizationsResponse organizations = organizationService.getById(deals.getContextableId());
+			dealsResponse.setOrganization(organizations);
+		}
 
-		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), "deals");
+		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), ContextableTypes.DEAL);
 		dealsResponse.setTags(tags);
 
 		return dealsResponse;
@@ -204,13 +219,13 @@ public class DealsService {
 		String[] properties = pageableRequest.getProperties();
 
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
-		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, "deal", pageRequest);
+		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, ContextableTypes.DEAL, pageRequest);
 
 		List<FollowerResponse> followerResponses = followerPage.getContent().stream().map(follower -> {
 			FollowerResponse followerRes = new FollowerResponse();
 
-			Long openDeals = getLeadsOpenDealsCountByStatus(follower.getPeople().getId(), "deal");
-			Long closedDeals = getLeadsClosedDealsCountByStatus(follower.getPeople().getId(), "deal");
+			Long openDeals = getLeadsOpenDealsCountByStatus(follower.getPeople().getId(), ContextableTypes.DEAL);
+			Long closedDeals = getLeadsClosedDealsCountByStatus(follower.getPeople().getId(), ContextableTypes.DEAL);
 
 			OwnerResponse owner = new OwnerResponse();
 			BeanUtils.copyProperties(follower.getPeople().getOwner(), owner);
@@ -218,7 +233,7 @@ public class DealsService {
 			ContactTypesResponse contactTypes = new ContactTypesResponse();
 			BeanUtils.copyProperties(follower.getPeople().getContactTypes(), contactTypes);
 
-			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(), "deal");
+			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(), ContextableTypes.DEAL);
 
 			followerRes.setTags(tags);
 			followerRes.setOwner(owner);
@@ -245,7 +260,7 @@ public class DealsService {
 		}
 
 		People people = peopleOptional.get();
-		List<Followers> followers = followersService.getFollowersByLeadsId(id, "person");
+		List<Followers> followers = followersService.getFollowersByLeadsId(id, ContextableTypes.PERSON);
 		followers.forEach(follower -> {
 			followersService.delete(follower);
 		});
@@ -257,7 +272,7 @@ public class DealsService {
 			logger.info("follower" + follower);
 
 			newFollower.setContextableId(people.getId());
-			newFollower.setContextableType("person");
+			newFollower.setContextableType(ContextableTypes.PERSON);
 			newFollower.setCreatedAt(dateNow);
 			newFollower.setUpdatedAt(dateNow);
 			newFollower.setPeople(follower);
@@ -299,12 +314,18 @@ public class DealsService {
 		BeanUtils.copyProperties(deals.getStages(), stagesResponse);
 		dealsResponse.setStages(stagesResponse);
 
-		People people = peopleService.get(deals.getContextableId());
-		PeopleResponse peopleResponse = new PeopleResponse();
-		BeanUtils.copyProperties(people, peopleResponse);
-		dealsResponse.setPerson(peopleResponse);
+		if (deals.getContextableType().equals(ContextableTypes.PERSON)) {
+			People people = peopleService.get(deals.getContextableId());
+			PeopleResponse peopleResponse = new PeopleResponse();
+			BeanUtils.copyProperties(people, peopleResponse);
+			dealsResponse.setPerson(peopleResponse);
 
-		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), "deals");
+		} else if (deals.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			OrganizationsResponse organizations = organizationService.getById(deals.getContextableId());
+			dealsResponse.setOrganization(organizations);
+		}
+
+		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), ContextableTypes.DEAL);
 		dealsResponse.setTags(tags);
 
 		return dealsResponse;
@@ -320,7 +341,12 @@ public class DealsService {
 		Stages stages = stagesService.get(request.getStagesId());
 		deals.setStages(stages);
 
-		deals.setContextableId(request.getPersonId());
+		if (request.getContextableType().equals(ContextableTypes.PERSON)) {
+			deals.setContextableId(request.getPersonId());
+
+		} else if (request.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			deals.setContextableId(request.getOrganizationId());
+		}
 
 		Users owner = usersService.get(request.getOwnerId());
 		deals.setOwner(owner);
@@ -329,7 +355,7 @@ public class DealsService {
 		return savedDeals.getId();
 	}
 
-	public long updateStage(long id,long stagesId) {
+	public long updateStage(long id, long stagesId) {
 		Deals deals = this.get(id);
 		Stages stages = stagesService.get(stagesId);
 		deals.setStages(stages);
@@ -338,7 +364,7 @@ public class DealsService {
 		return savedDeals.getId();
 	}
 
-	public long updateValue(long id,long dealValue) {
+	public long updateValue(long id, long dealValue) {
 		Deals deals = this.get(id);
 		deals.setValue(dealValue);
 
@@ -346,7 +372,7 @@ public class DealsService {
 		return savedDeals.getId();
 	}
 
-	public long updatePersonId(long id,long personId) {
+	public long updatePersonId(long id, long personId) {
 		Deals deals = this.get(id);
 		deals.setContextableId(personId);
 
@@ -354,7 +380,7 @@ public class DealsService {
 		return savedDeals.getId();
 	}
 
-	public long updateExpiredDate(long id,Date expiredDate) {
+	public long updateExpiredDate(long id, Date expiredDate) {
 		Deals deals = this.get(id);
 		deals.setExpiredAt(expiredDate);
 
@@ -362,7 +388,7 @@ public class DealsService {
 		return savedDeals.getId();
 	}
 
-	public long updateDescription(long id,String description) {
+	public long updateDescription(long id, String description) {
 		Deals deals = this.get(id);
 		deals.setDescription(description);
 
@@ -398,7 +424,7 @@ public class DealsService {
 	public long updateDealsTag(long id, UpdateDealsTagRequest request) {
 		Deals deals = this.get(id);
 
-		List<Taggables> taggablesList = tagService.getTaggableByTaggableIdAndTaggableType(deals.getId(), "deals");
+		List<Taggables> taggablesList = tagService.getTaggableByTaggableIdAndTaggableType(deals.getId(), ContextableTypes.DEAL);
 		for (Taggables taggables : taggablesList) {
 			tagService.deleteByEntity(taggables);
 		}
@@ -408,7 +434,7 @@ public class DealsService {
 
 			Taggables taggable = new Taggables();
 			taggable.setTaggableId(deals.getId());
-			taggable.setTaggableType("deals");
+			taggable.setTaggableType(ContextableTypes.DEAL);
 			taggable.setTags(tag);
 
 			tagService.save(taggable);
@@ -443,7 +469,8 @@ public class DealsService {
 	}
 
 	public List<Statuses> getLeadsDealsCountByStatus(Long id) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person",
+		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(
+				ContextableTypes.PERSON,
 				id);
 
 		deals.stream().filter(deal -> deal.getStatuses().equals("status_open")).count();
@@ -465,22 +492,22 @@ public class DealsService {
 		return dealsList.size();
 	}
 
-	public Long getLeadsOpenDealsCountByStatus(Long id, String leadType) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType,
+	public Long getLeadsOpenDealsCountByStatus(Long id, ContextableTypes leadType) {
+		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(leadType,
 				id);
 
 		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_open")).count();
 	}
 
-	public Long getLeadsClosedDealsCountByStatus(Long id, String leadType) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType,
+	public Long getLeadsClosedDealsCountByStatus(Long id, ContextableTypes leadType) {
+		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(leadType,
 				id);
 
 		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_closed")).count();
 	}
 
-	public List<Deals> getDealsByLeadId(Long id, String leadType) {
-		List<Deals> deals = dealsRepository.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType, id);
+	public List<Deals> getDealsByLeadId(Long id, ContextableTypes leadType) {
+		List<Deals> deals = dealsRepository.findByContextableTypeAndContextableId(leadType, id);
 
 		return deals;
 	}
@@ -489,23 +516,24 @@ public class DealsService {
 		Users user = usersService.get(1);
 		Deals deals = new Deals();
 
-		deals.setContextableType("App\\Models\\CRM\\Person\\Person");
+		if (request.getContextableType().equals(ContextableTypes.PERSON)) {
+			deals.setContextableId(request.getPersonId());
+		} else if (request.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			deals.setContextableId(request.getOrganizationId());
+		}
+
+		BeanUtils.copyProperties(request, deals);
+
 		Statuses statuses = statusesService.findDealOpenStatuses();
 		deals.setStatuses(statuses);
 
 		deals.setCreatedBy(user);
-		deals.setTitle(request.getTitle());
-		deals.setDescription(request.getDescription());
-		deals.setExpiredAt(request.getExpiredAt());
-		deals.setValue(request.getValue());
-		
+
 		Pipelines pipelines = pipelinesService.get(request.getPipelinesId());
 		deals.setPipelines(pipelines);
 
 		Stages stages = stagesService.get(request.getStagesId());
 		deals.setStages(stages);
-
-		deals.setContextableId(request.getPersonId());
 
 		Users owner = usersService.get(request.getOwnerId());
 		deals.setOwner(owner);

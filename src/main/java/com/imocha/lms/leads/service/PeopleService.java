@@ -6,19 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.activities.entities.Activities;
 import com.imocha.lms.activities.entities.ActivityTypes;
@@ -31,6 +18,7 @@ import com.imocha.lms.common.entities.PhoneEmailTypes;
 import com.imocha.lms.common.entities.Phones;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.EmailResponse;
 import com.imocha.lms.common.model.PhoneResponse;
@@ -69,6 +57,19 @@ import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
 import com.imocha.lms.leads.repositories.PeopleRepository;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -167,7 +168,7 @@ public class PeopleService {
 	}
 
 	public List<ActivityResponse> getPersonActivitiesByPersonId(Long id) {
-		List<Activities> activities = activitiesService.getActivitiesByLeadId(id, "person");
+		List<Activities> activities = activitiesService.getActivitiesByLeadId(id, ContextableTypes.PERSON);
 
 		List<ActivityResponse> activityRes = activities.stream().map(activity -> {
 			ActivityResponse activityResponse = new ActivityResponse();
@@ -221,13 +222,16 @@ public class PeopleService {
 		String[] properties = pageableRequest.getProperties();
 
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
-		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, "person", pageRequest);
+		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, ContextableTypes.PERSON,
+				pageRequest);
 
 		List<FollowerResponse> followerResponses = followerPage.getContent().stream().map(follower -> {
 			FollowerResponse followerRes = new FollowerResponse();
 
-			Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(follower.getPeople().getId(), "person");
-			Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(follower.getPeople().getId(), "person");
+			Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(follower.getPeople().getId(),
+					ContextableTypes.PERSON);
+			Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(follower.getPeople().getId(),
+					ContextableTypes.PERSON);
 
 			OwnerResponse owner = new OwnerResponse();
 			BeanUtils.copyProperties(follower.getPeople().getOwner(), owner);
@@ -235,7 +239,8 @@ public class PeopleService {
 			ContactTypesResponse contactTypes = new ContactTypesResponse();
 			BeanUtils.copyProperties(follower.getPeople().getContactTypes(), contactTypes);
 
-			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(), "person");
+			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(),
+					ContextableTypes.PERSON);
 
 			followerRes.setTags(tags);
 			followerRes.setOwner(owner);
@@ -256,7 +261,7 @@ public class PeopleService {
 
 	public List<DealsResponse> getDealsByPersonId(Long id) {
 
-		List<Deals> deals = dealsService.getDealsByLeadId(id, "person");
+		List<Deals> deals = dealsService.getDealsByLeadId(id, ContextableTypes.PERSON);
 		List<DealsResponse> dealsResponses = deals.stream().map(deal -> {
 			DealsResponse dealsRes = new DealsResponse();
 			BeanUtils.copyProperties(deal, dealsRes);
@@ -318,7 +323,7 @@ public class PeopleService {
 		}
 
 		People people = peopleOptional.get();
-		List<Followers> followers = followersService.getFollowersByLeadsId(id, "person");
+		List<Followers> followers = followersService.getFollowersByLeadsId(id, ContextableTypes.PERSON);
 		followers.forEach(follower -> {
 			followersService.delete(follower);
 		});
@@ -330,7 +335,7 @@ public class PeopleService {
 			logger.info("follower" + follower);
 
 			newFollower.setContextableId(people.getId());
-			newFollower.setContextableType("person");
+			newFollower.setContextableType(ContextableTypes.PERSON);
 			newFollower.setCreatedAt(dateNow);
 			newFollower.setUpdatedAt(dateNow);
 			newFollower.setPeople(follower);
@@ -389,7 +394,7 @@ public class PeopleService {
 
 		Taggables taggable = new Taggables();
 		taggable.setTaggableId(id);
-		taggable.setTaggableType("person");
+		taggable.setTaggableType(ContextableTypes.PERSON);
 		taggable.setTags(tag);
 
 		tagService.save(taggable);
@@ -410,7 +415,7 @@ public class PeopleService {
 		People people = peopleOptional.get();
 
 		Tags tag = tagService.getByTagId(requestModel.getId());
-		Taggables taggable = tagService.getTaggable(tag, id, "person");
+		Taggables taggable = tagService.getTaggable(tag, id, ContextableTypes.PERSON);
 		tagService.deleteByEntity(taggable);
 
 		people.setUpdatedAt(dateNow);
@@ -705,15 +710,15 @@ public class PeopleService {
 			return orResponse;
 		}).collect(Collectors.toList());
 
-		Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(id, "person");
-		Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(id, "person");
+		Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(id, ContextableTypes.PERSON);
+		Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(id, ContextableTypes.PERSON);
 
 		personResponse.setClosedDealsCount(closedDeals);
 		personResponse.setOpenDealsCount(openDeals);
 
 		personResponse.setOrganizations(organizationResponses);
 
-		List<TagResponse> tags = tagService.getLeadsTagById(id, "person");
+		List<TagResponse> tags = tagService.getLeadsTagById(id, ContextableTypes.PERSON);
 		personResponse.setTags(tags);
 
 		return personResponse;

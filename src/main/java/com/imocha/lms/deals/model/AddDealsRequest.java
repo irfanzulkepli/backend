@@ -3,6 +3,7 @@ package com.imocha.lms.deals.model;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 
 import lombok.Data;
 
@@ -14,8 +15,9 @@ public class AddDealsRequest {
     private long ownerId;
     private long pipelinesId;
     private long stagesId;
+	private ContextableTypes contextableType;
     private long personId;
-    private String contextableId;
+    private long organizationId;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private Date expiredAt;

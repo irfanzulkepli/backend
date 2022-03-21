@@ -1,7 +1,9 @@
 package com.imocha.lms.activities.model;
 
 import java.util.Date;
-import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 
 import org.springframework.lang.Nullable;
 
@@ -13,15 +15,24 @@ public class ActivitiesRequest {
 	private Long activityTypeId;
 	private String title;
 	private String description;
+
+	@JsonFormat(pattern = "yyyy-MM-dd")
 	private Date startedAt;
+	@JsonFormat(pattern = "yyyy-MM-dd")
 	private Date endedAt;
+
+	@JsonFormat(pattern = "HH:mm")
 	private Date startTime;
+	@JsonFormat(pattern = "HH:mm")
 	private Date endTime;
-	private List<Long> collaboratorsIds;
-	private List<Long> participantsIds;
-	private Long statusId;
-	private String contextableType;
-	private Long contextableId;
+
+	private long[] collaboratorsIds;
+	private long[] participantsIds;
+	private boolean markAsDone;
+	private ContextableTypes contextableType;
+	private Long dealsId;
+	private Long personsId;
+	private Long organizationsId;
 
 	@Nullable
 	private Long createdById;

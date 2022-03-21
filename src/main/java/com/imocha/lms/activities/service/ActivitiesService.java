@@ -3,19 +3,7 @@ package com.imocha.lms.activities.service;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.activities.entities.Activities;
@@ -29,6 +17,7 @@ import com.imocha.lms.activities.repositories.ActivitiesParticipantRepository;
 import com.imocha.lms.activities.repositories.ActivitiesRepository;
 import com.imocha.lms.activities.repositories.ActivityTypesRepository;
 import com.imocha.lms.common.entities.Statuses;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.service.StatusesService;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
@@ -38,6 +27,17 @@ import com.imocha.lms.leads.model.ParticipantResponse;
 import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
+
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,77 +85,78 @@ public class ActivitiesService {
 		return activityResponsePageImpl;
 	}
 
-	public List<Activities> getActivitiesByLeadId(Long id, String leadType) {
+	public List<Activities> getActivitiesByLeadId(Long id, ContextableTypes leadType) {
 		List<Activities> activities = activitiesRepository
-				.findByContextableTypeIgnoreCaseContainingAndContextableId(leadType, id);
+				.findByContextableTypeAndContextableId(leadType, id);
 
 		return activities;
 	}
 
 	public List<People> getParticipantsByActivityId(Activities activity) {
-		List<People> peoples = activity.getActivityParticipant().stream().map(participant -> {
+		List<ActivityParticipant> activityParticipants = activitiesParticipantRepository.findByActivities(activity);
+
+		List<People> peoples = activityParticipants.stream().map(participant -> {
 			return participant.getPeople();
 		}).collect(Collectors.toList());
 
 		return peoples;
 	}
 
-	public List<Users> getCollaboratorsByActivity(Activities activiy) {
-		List<Users> collaborators = activiy.getActivityCollaborator().stream().map(collaborator -> {
+	public List<Users> getCollaboratorsByActivity(Activities activity) {
+		List<ActivityCollaborator> activityCollaborators = activitiesCollaboratorRepository.findByActivities(activity);
+
+		List<Users> collaborators = activityCollaborators.stream().map(collaborator -> {
 			return collaborator.getUsers();
 		}).collect(Collectors.toList());
 
 		return collaborators;
 	}
 
-	public ActivityResponse addActiviy(ActivitiesRequest requestModel) {
-		Date dateNow = new Date();
+	public long addActiviy(ActivitiesRequest requestModel) {
 		Activities activity = new Activities();
 		BeanUtils.copyProperties(requestModel, activity);
 
-		Users user = usersService.get(requestModel.getCreatedById());
+		Users user = usersService.get(1);
 		activity.setUsers(user);
 
-		Statuses status = statusesService.findById(requestModel.getStatusId());
+		Statuses status = new Statuses();
+		if (requestModel.isMarkAsDone()) {
+			status = statusesService.findActivityDoneStatuses();
+		} else {
+			status = statusesService.findActivityTodoStatuses();
+		}
 		activity.setStatuses(status);
+
+		if (requestModel.getContextableType().equals(ContextableTypes.PERSON)) {
+			activity.setContextableId(requestModel.getPersonsId());
+		} else if (requestModel.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			activity.setContextableId(requestModel.getOrganizationsId());
+		} else if (requestModel.getContextableType().equals(ContextableTypes.DEAL)) {
+			activity.setContextableId(requestModel.getDealsId());
+		}
 
 		ActivityTypes activityType = activityTypesRepository.getById(requestModel.getActivityTypeId());
 		activity.setActivityTypes(activityType);
 
-		activity.setCreatedAt(dateNow);
-		activity.setUpdatedAt(dateNow);
-
 		Activities newActivity = activitiesRepository.save(activity);
 
-		Set<ActivityParticipant> activityParticipantSet = requestModel.getParticipantsIds().stream()
-				.map(participantId -> {
-					ActivityParticipant activityParticipant = new ActivityParticipant();
-					People people = peopleService.get(participantId);
+		for (long participantId : requestModel.getParticipantsIds()) {
+			People people = peopleService.get(participantId);
+			ActivityParticipant activityParticipant = new ActivityParticipant();
+			activityParticipant.setPeople(people);
+			activityParticipant.setActivities(newActivity);
+			activitiesParticipantRepository.save(activityParticipant);
+		}
 
-					activityParticipant.setPeople(people);
-					activityParticipant.setActivities(newActivity);
+		for (long collaboratorId : requestModel.getCollaboratorsIds()) {
+			Users collaborator = usersService.get(collaboratorId);
+			ActivityCollaborator activityCollaborator = new ActivityCollaborator();
+			activityCollaborator.setUsers(collaborator);
+			activityCollaborator.setActivities(newActivity);
+			activitiesCollaboratorRepository.save(activityCollaborator);
+		}
 
-					return activitiesParticipantRepository.save(activityParticipant);
-				}).collect(Collectors.toSet());
-
-		newActivity.setActivityParticipant(activityParticipantSet);
-
-		Set<ActivityCollaborator> activityCollaboratorSet = requestModel.getCollaboratorsIds().stream()
-				.map(collaboratorId -> {
-					ActivityCollaborator activityCollaborator = new ActivityCollaborator();
-					Users collaborator = usersService.get(collaboratorId);
-
-					activityCollaborator.setUsers(collaborator);
-					activityCollaborator.setActivities(newActivity);
-
-					return activitiesCollaboratorRepository.save(activityCollaborator);
-				}).collect(Collectors.toSet());
-
-		newActivity.setActivityCollaborator(activityCollaboratorSet);
-
-		activitiesRepository.save(newActivity);
-
-		return populateActivityResponse(newActivity);
+		return newActivity.getId();
 	}
 
 	public Long deleteById(Long id) {
@@ -219,7 +220,14 @@ public class ActivitiesService {
 		activityCollaborators.forEach(activityCollaborator -> {
 			activitiesCollaboratorRepository.delete(activityCollaborator);
 		});
-		Statuses status = statusesService.findById(requestModel.getStatusId());
+
+		Statuses status = new Statuses();
+		if (requestModel.isMarkAsDone()) {
+			status = statusesService.findActivityDoneStatuses();
+		} else {
+			status = statusesService.findActivityTodoStatuses();
+		}
+		activity.setStatuses(status);
 		activity.setStatuses(status);
 
 		ActivityTypes activityType = activityTypesRepository.getById(requestModel.getActivityTypeId());
@@ -227,31 +235,33 @@ public class ActivitiesService {
 
 		activity.setUpdatedAt(dateNow);
 
-		Set<ActivityParticipant> activityParticipantSet = requestModel.getParticipantsIds().stream()
-				.map(participantId -> {
-					ActivityParticipant activityParticipant = new ActivityParticipant();
-					People people = peopleService.get(participantId);
+		// Set<ActivityParticipant> activityParticipantSet =
+		// requestModel.getParticipantsIds().stream()
+		// .map(participantId -> {
+		// ActivityParticipant activityParticipant = new ActivityParticipant();
+		// People people = peopleService.get(participantId);
 
-					activityParticipant.setPeople(people);
-					activityParticipant.setActivities(activity);
+		// activityParticipant.setPeople(people);
+		// activityParticipant.setActivities(activity);
 
-					return activitiesParticipantRepository.save(activityParticipant);
-				}).collect(Collectors.toSet());
+		// return activitiesParticipantRepository.save(activityParticipant);
+		// }).collect(Collectors.toSet());
 
-		activity.setActivityParticipant(activityParticipantSet);
+		// activity.setActivityParticipant(activityParticipantSet);
 
-		Set<ActivityCollaborator> activityCollaboratorSet = requestModel.getCollaboratorsIds().stream()
-				.map(collaboratorId -> {
-					ActivityCollaborator activityCollaborator = new ActivityCollaborator();
-					Users collaborator = usersService.get(collaboratorId);
+		// Set<ActivityCollaborator> activityCollaboratorSet =
+		// requestModel.getCollaboratorsIds().stream()
+		// .map(collaboratorId -> {
+		// ActivityCollaborator activityCollaborator = new ActivityCollaborator();
+		// Users collaborator = usersService.get(collaboratorId);
 
-					activityCollaborator.setUsers(collaborator);
-					activityCollaborator.setActivities(activity);
+		// activityCollaborator.setUsers(collaborator);
+		// activityCollaborator.setActivities(activity);
 
-					return activitiesCollaboratorRepository.save(activityCollaborator);
-				}).collect(Collectors.toSet());
+		// return activitiesCollaboratorRepository.save(activityCollaborator);
+		// }).collect(Collectors.toSet());
 
-		activity.setActivityCollaborator(activityCollaboratorSet);
+		// activity.setActivityCollaborator(activityCollaboratorSet);
 
 		activitiesRepository.save(activity);
 

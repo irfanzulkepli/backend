@@ -1,5 +1,7 @@
 package com.imocha.lms.leads.model;
 
+import com.imocha.lms.common.enumerator.ContextableTypes;
+
 import org.springframework.lang.Nullable;
 
 import lombok.Data;
@@ -12,6 +14,6 @@ public class ContactRequest {
 	@Nullable
 	private Long typeId;
 
-	private String contextableType;
+	private ContextableTypes contextableType;
 
 }

@@ -8,6 +8,7 @@ import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.common.model.TagResponse;
 import com.imocha.lms.deals.pipelines.model.PipelinesResponse;
 import com.imocha.lms.deals.pipelines.model.StagesResponse;
+import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.users.entities.Users;
@@ -31,6 +32,7 @@ public class DealsListResponse {
 	private StagesResponse stages;
 	private StatusesResponse statuses;
 	private PeopleResponse person;
+	private OrganizationsResponse organization;
 
 	private List<TagResponse> tags;
     

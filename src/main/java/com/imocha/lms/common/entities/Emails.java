@@ -7,6 +7,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -14,6 +16,8 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.imocha.lms.common.enumerator.ContextableTypes;
 
 import lombok.Data;
 
@@ -32,9 +36,10 @@ public class Emails implements Serializable {
     private Long id;
     @Column(nullable = false, length = 191)
     private String value;
-
+    
+	@Enumerated(EnumType.STRING)
     @Column(name = "contextable_type", length = 191)
-    private String contextableType;
+    private ContextableTypes contextableType;
     @Column(name = "contextable_id", precision = 20)
     private long contextableId;
     @Column(name = "created_at")

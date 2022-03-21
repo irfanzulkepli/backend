@@ -2,13 +2,13 @@ package com.imocha.lms.common.service;
 
 import java.util.Optional;
 
+import com.imocha.lms.common.entities.Statuses;
+import com.imocha.lms.common.repositories.StatusesRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import com.imocha.lms.common.entities.Statuses;
-import com.imocha.lms.common.repositories.StatusesRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +44,15 @@ public class StatusesService {
 		return this.findStatusesByNameAndType("status_open", "deal");
 	}
 
-	public Statuses findStatusesByNameAndType(String name, String type){
+	public Statuses findActivityTodoStatuses(){
+		return this.findStatusesByNameAndType("status_todo", "activity");
+	}
+
+	public Statuses findActivityDoneStatuses(){
+		return this.findStatusesByNameAndType("status_done", "activity");
+	}
+
+	private Statuses findStatusesByNameAndType(String name, String type){
 		return statusesRepository.findByNameAndType(name, type);
 	}
 }

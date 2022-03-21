@@ -3,13 +3,14 @@ package com.imocha.lms.common.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.imocha.lms.common.entities.Phones;
+import com.imocha.lms.common.enumerator.ContextableTypes;
+import com.imocha.lms.common.model.PhoneResponse;
+import com.imocha.lms.common.repositories.PhonesRepository;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.imocha.lms.common.entities.Phones;
-import com.imocha.lms.common.model.PhoneResponse;
-import com.imocha.lms.common.repositories.PhonesRepository;
 
 @Service
 public class PhoneService {
@@ -18,7 +19,7 @@ public class PhoneService {
 	private PhonesRepository phonesRepository;
 
 	public List<PhoneResponse> getPersonPhoneById(Long id) {
-		return this.phonesRepository.findByContextableTypeIgnoreCaseContainingAndContextableId("person", id).stream()
+		return this.phonesRepository.findByContextableTypeAndContextableId(ContextableTypes.PERSON, id).stream()
 				.map(phone -> {
 					PhoneResponse phoneResponse = new PhoneResponse();
 					phoneResponse.setType(phone.getContactTypes());

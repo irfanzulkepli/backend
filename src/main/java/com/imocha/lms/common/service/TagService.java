@@ -3,15 +3,16 @@ package com.imocha.lms.common.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.model.TagResponse;
 import com.imocha.lms.common.repositories.TagRepository;
 import com.imocha.lms.common.repositories.TaggableRepository;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class TagService {
@@ -34,22 +35,22 @@ public class TagService {
 		return tagResponses;
 	}
 
-	public List<Taggables> getTaggableByTaggableIdAndTaggableType(Long id, String leadType) {
-		return this.taggableRepository.findByTaggableTypeIgnoreCaseContainingAndTaggableId(leadType, id);
+	public List<Taggables> getTaggableByTaggableIdAndTaggableType(Long id, ContextableTypes leadType) {
+		return this.taggableRepository.findByTaggableTypeAndTaggableId(leadType, id);
 	}
 
-	public List<TagResponse> getLeadsTagById(Long id, String leadType) {
-		return this.taggableRepository.findByTaggableTypeIgnoreCaseContainingAndTaggableId(leadType, id).stream()
+	public List<TagResponse> getLeadsTagById(Long id, ContextableTypes leadType) {
+		return this.taggableRepository.findByTaggableTypeAndTaggableId(leadType, id).stream()
 				.map(taggable -> {
-					Tags tag = tagRepository.getById(taggable.getTagsId());
+					Tags tag = tagRepository.getById(taggable.getTags().getId());
 					TagResponse tagResponse = new TagResponse();
 					BeanUtils.copyProperties(tag, tagResponse);
 					return tagResponse;
 				}).collect(Collectors.toList());
 	}
 
-	public Taggables getTaggable(Tags tag, Long taggableId, String contextableType) {
-		return taggableRepository.findByTaggableTypeIgnoreCaseContainingAndTaggableIdAndTags(contextableType,
+	public Taggables getTaggable(Tags tag, Long taggableId, ContextableTypes contextableType) {
+		return taggableRepository.findByTaggableTypeAndTaggableIdAndTags(contextableType,
 				taggableId, tag);
 	}
 
@@ -59,7 +60,7 @@ public class TagService {
 
 	public TagResponse save(Taggables taggables) {
 		taggableRepository.save(taggables);
-		Tags tag = tagRepository.getById(taggables.getTagsId());
+		Tags tag = tagRepository.getById(taggables.getTags().getId());
 
 		TagResponse tagResponse = new TagResponse();
 		BeanUtils.copyProperties(tag, tagResponse);

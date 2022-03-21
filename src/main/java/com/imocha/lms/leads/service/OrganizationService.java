@@ -5,17 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.activities.entities.Activities;
 import com.imocha.lms.activities.entities.ActivityTypes;
@@ -25,6 +14,7 @@ import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.TagResponse;
 import com.imocha.lms.common.service.CountriesService;
@@ -55,6 +45,17 @@ import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
 import com.imocha.lms.leads.repositories.OrganizationRepository;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -222,7 +223,8 @@ public class OrganizationService {
 	}
 
 	public List<ActivityResponse> getOrganizationActivitiesById(Long id) {
-		List<Activities> activities = activitiesService.getActivitiesByLeadId(id, "organization");
+		List<Activities> activities = activitiesService.getActivitiesByLeadId(id,
+				ContextableTypes.ORGANIZATION);
 
 		List<ActivityResponse> activityRes = activities.stream().map(activity -> {
 			ActivityResponse activityResponse = new ActivityResponse();
@@ -276,13 +278,16 @@ public class OrganizationService {
 		String[] properties = pageableRequest.getProperties();
 
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
-		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, "organization", pageRequest);
+		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id,
+				ContextableTypes.ORGANIZATION, pageRequest);
 
 		List<FollowerResponse> followerResponses = followerPage.getContent().stream().map(follower -> {
 			FollowerResponse followerRes = new FollowerResponse();
 
-			Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(follower.getPeople().getId(), "person");
-			Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(follower.getPeople().getId(), "person");
+			Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(follower.getPeople().getId(),
+					ContextableTypes.PERSON);
+			Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(follower.getPeople().getId(),
+					ContextableTypes.PERSON);
 
 			OwnerResponse owner = new OwnerResponse();
 			BeanUtils.copyProperties(follower.getPeople().getOwner(), owner);
@@ -290,7 +295,8 @@ public class OrganizationService {
 			ContactTypesResponse contactTypes = new ContactTypesResponse();
 			BeanUtils.copyProperties(follower.getPeople().getContactTypes(), contactTypes);
 
-			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(), "person");
+			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(),
+					ContextableTypes.PERSON);
 
 			followerRes.setTags(tags);
 			followerRes.setOwner(owner);
@@ -311,7 +317,7 @@ public class OrganizationService {
 
 	public List<DealsResponse> getDealsByOrganizationId(Long id) {
 
-		List<Deals> deals = dealsService.getDealsByLeadId(id, "organization");
+		List<Deals> deals = dealsService.getDealsByLeadId(id, ContextableTypes.ORGANIZATION);
 		List<DealsResponse> dealsResponses = deals.stream().map(deal -> {
 			DealsResponse dealsRes = new DealsResponse();
 			BeanUtils.copyProperties(deal, dealsRes);
@@ -370,7 +376,8 @@ public class OrganizationService {
 		}
 
 		Organizations organization = organizationOptional.get();
-		List<Followers> followers = followersService.getFollowersByLeadsId(id, "organization");
+		List<Followers> followers = followersService.getFollowersByLeadsId(id,
+				ContextableTypes.ORGANIZATION);
 		followers.forEach(follower -> {
 			followersService.deleteById(follower.getId());
 		});
@@ -380,7 +387,7 @@ public class OrganizationService {
 			People follower = peopleService.get(followerId);
 
 			newFollower.setContextableId(organization.getId());
-			newFollower.setContextableType("organization");
+			newFollower.setContextableType(ContextableTypes.ORGANIZATION);
 			newFollower.setCreatedAt(dateNow);
 			newFollower.setUpdatedAt(dateNow);
 			newFollower.setPeople(follower);
@@ -420,7 +427,7 @@ public class OrganizationService {
 		Tags tag = tagService.getByTagId(requestModel.getId());
 		Taggables taggable = new Taggables();
 		taggable.setTaggableId(id);
-		taggable.setTaggableType("person");
+		taggable.setTaggableType(ContextableTypes.PERSON);
 		taggable.setTags(tag);
 
 		tagService.save(taggable);
@@ -441,7 +448,7 @@ public class OrganizationService {
 		Organizations organization = organizationOptional.get();
 
 		Tags tag = tagService.getByTagId(requestModel.getId());
-		Taggables taggable = tagService.getTaggable(tag, id, "person");
+		Taggables taggable = tagService.getTaggable(tag, id, ContextableTypes.PERSON);
 		tagService.deleteByEntity(taggable);
 
 		organization.setUpdatedAt(dateNow);
@@ -510,15 +517,18 @@ public class OrganizationService {
 			return personResponse;
 		}).collect(Collectors.toList());
 
-		Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(organization.getId(), "organization");
-		Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(organization.getId(), "organization");
+		Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(organization.getId(),
+				ContextableTypes.ORGANIZATION);
+		Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(organization.getId(),
+				ContextableTypes.ORGANIZATION);
 
 		organizationResponse.setClosedDealsCount(closedDeals);
 		organizationResponse.setOpenDealsCount(openDeals);
 		organizationResponse.setCreatedAt(organization.getCreatedAt());
 		organizationResponse.setPersons(personResponses);
 
-		List<TagResponse> tags = tagService.getLeadsTagById(organization.getId(), "organization");
+		List<TagResponse> tags = tagService.getLeadsTagById(organization.getId(),
+				ContextableTypes.ORGANIZATION);
 		organizationResponse.setTags(tags);
 
 		return organizationResponse;

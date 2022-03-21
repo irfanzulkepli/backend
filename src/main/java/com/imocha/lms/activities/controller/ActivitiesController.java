@@ -49,7 +49,7 @@ public class ActivitiesController {
 	}
 
 	@PostMapping("add")
-	public ActivityResponse add(@RequestBody ActivitiesRequest activitiesRequest) {
+	public long add(@RequestBody ActivitiesRequest activitiesRequest) {
 		return activitiesService.addActiviy(activitiesRequest);
 	}
 
