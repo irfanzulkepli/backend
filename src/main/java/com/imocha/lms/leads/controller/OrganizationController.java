@@ -78,6 +78,11 @@ public class OrganizationController {
 		return organizationService.getPersonsById(id);
 	}
 
+	@GetMapping("{id}/deals/page")
+	public Page<DealsResponse> getDealsPage(@Valid PageableRequest pageableRequest, @PathVariable("id") Long id) {
+		return organizationService.getDealsPage(pageableRequest, id);
+	}
+
 	@PutMapping("{id}")
 	public Organizations update(@RequestBody OrganizationsRequest requestModel, @PathVariable("id") Long id) {
 		return organizationService.update(requestModel, id);

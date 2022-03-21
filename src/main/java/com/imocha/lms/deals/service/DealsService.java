@@ -6,6 +6,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.Statuses;
@@ -37,32 +51,15 @@ import com.imocha.lms.deals.pipelines.service.StagesService;
 import com.imocha.lms.deals.repositories.DealsRepository;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.FollowerResponse;
+import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.leads.model.UpdateFollowerRequest;
 import com.imocha.lms.leads.repositories.PeopleRepository;
-import com.imocha.lms.leads.model.OrganizationsResponse;
-import com.imocha.lms.leads.model.OwnerResponse;
-import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.leads.service.OrganizationService;
 import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
-
-import org.apache.catalina.startup.ContextConfig.ContextXml;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -424,7 +421,8 @@ public class DealsService {
 	public long updateDealsTag(long id, UpdateDealsTagRequest request) {
 		Deals deals = this.get(id);
 
-		List<Taggables> taggablesList = tagService.getTaggableByTaggableIdAndTaggableType(deals.getId(), ContextableTypes.DEAL);
+		List<Taggables> taggablesList = tagService.getTaggableByTaggableIdAndTaggableType(deals.getId(),
+				ContextableTypes.DEAL);
 		for (Taggables taggables : taggablesList) {
 			tagService.deleteByEntity(taggables);
 		}
@@ -469,9 +467,7 @@ public class DealsService {
 	}
 
 	public List<Statuses> getLeadsDealsCountByStatus(Long id) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(
-				ContextableTypes.PERSON,
-				id);
+		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(ContextableTypes.PERSON, id);
 
 		deals.stream().filter(deal -> deal.getStatuses().equals("status_open")).count();
 
@@ -493,15 +489,13 @@ public class DealsService {
 	}
 
 	public Long getLeadsOpenDealsCountByStatus(Long id, ContextableTypes leadType) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(leadType,
-				id);
+		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(leadType, id);
 
 		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_open")).count();
 	}
 
 	public Long getLeadsClosedDealsCountByStatus(Long id, ContextableTypes leadType) {
-		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(leadType,
-				id);
+		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(leadType, id);
 
 		return deals.stream().filter(deal -> deal.getStatuses().getName().equals("status_closed")).count();
 	}
@@ -510,6 +504,12 @@ public class DealsService {
 		List<Deals> deals = dealsRepository.findByContextableTypeAndContextableId(leadType, id);
 
 		return deals;
+	}
+
+	public Page<Deals> getDealsPageByLeadId(Long id, ContextableTypes leadType, PageRequest pageRequest) {
+		Page<Deals> dealsPage = dealsRepository.findByContextableTypeAndContextableId(pageRequest, leadType, id);
+
+		return dealsPage;
 	}
 
 	public long addDeals(AddDealsRequest request) {

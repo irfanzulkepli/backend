@@ -6,6 +6,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.activities.entities.Activities;
 import com.imocha.lms.activities.entities.ActivityTypes;
@@ -16,12 +29,14 @@ import com.imocha.lms.common.entities.Emails;
 import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.PhoneEmailTypes;
 import com.imocha.lms.common.entities.Phones;
+import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
 import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.model.ContactTypesResponse;
 import com.imocha.lms.common.model.EmailResponse;
 import com.imocha.lms.common.model.PhoneResponse;
+import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.common.model.TagResponse;
 import com.imocha.lms.common.service.CountriesService;
 import com.imocha.lms.common.service.EmailService;
@@ -41,10 +56,12 @@ import com.imocha.lms.leads.model.ContactRequest;
 import com.imocha.lms.leads.model.DealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationResponse;
+import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.ParticipantResponse;
 import com.imocha.lms.leads.model.PeopleListResponse;
 import com.imocha.lms.leads.model.PeopleRequest;
+import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.leads.model.PersonListResponse;
 import com.imocha.lms.leads.model.PersonOrganizationRequest;
 import com.imocha.lms.leads.model.PersonPageResponse;
@@ -57,19 +74,6 @@ import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
 import com.imocha.lms.leads.repositories.PeopleRepository;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -222,8 +226,7 @@ public class PeopleService {
 		String[] properties = pageableRequest.getProperties();
 
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
-		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, ContextableTypes.PERSON,
-				pageRequest);
+		Page<Followers> followerPage = followersService.getFollowersByLeadsId(id, ContextableTypes.PERSON, pageRequest);
 
 		List<FollowerResponse> followerResponses = followerPage.getContent().stream().map(follower -> {
 			FollowerResponse followerRes = new FollowerResponse();
@@ -239,8 +242,7 @@ public class PeopleService {
 			ContactTypesResponse contactTypes = new ContactTypesResponse();
 			BeanUtils.copyProperties(follower.getPeople().getContactTypes(), contactTypes);
 
-			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(),
-					ContextableTypes.PERSON);
+			List<TagResponse> tags = tagService.getLeadsTagById(follower.getPeople().getId(), ContextableTypes.PERSON);
 
 			followerRes.setTags(tags);
 			followerRes.setOwner(owner);
@@ -275,6 +277,56 @@ public class PeopleService {
 		}).collect(Collectors.toList());
 
 		return dealsResponses;
+	}
+
+	public Page<DealsResponse> getDealsPage(PageableRequest pageableRequest, Long id) {
+		int page = pageableRequest.getPage();
+		int size = pageableRequest.getSize();
+		Direction direction = pageableRequest.getDirection();
+		String[] properties = pageableRequest.getProperties();
+
+		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
+		Page<Deals> dealsPage = dealsService.getDealsPageByLeadId(id, ContextableTypes.PERSON, pageRequest);
+
+		List<DealsResponse> dealsResponses = dealsPage.getContent().stream().map(deal -> {
+			DealsResponse dealsRes = new DealsResponse();
+			BeanUtils.copyProperties(deal, dealsRes);
+
+			OwnerResponse owner = new OwnerResponse();
+			BeanUtils.copyProperties(deal.getOwner(), owner);
+
+			dealsRes.setOwner(owner);
+
+			if (deal.getContextableType().equals(ContextableTypes.PERSON)) {
+				People people = peopleRepository.getById(deal.getContextableId());
+				PeopleResponse peopleResponse = new PeopleResponse();
+				BeanUtils.copyProperties(people, peopleResponse);
+
+				dealsRes.setPerson(peopleResponse);
+				dealsRes.setContactPerson(peopleResponse.getName());
+			} else {
+				OrganizationsResponse organization = organizationService.getById(deal.getContextableId());
+				OrganizationResponse organizationResponse = new OrganizationResponse();
+				BeanUtils.copyProperties(organization, organizationResponse);
+
+				dealsRes.setOrganization(organizationResponse);
+			}
+
+			List<TagResponse> tags = tagService.getLeadsTagById(deal.getId(), ContextableTypes.DEAL);
+			dealsRes.setTags(tags);
+			dealsRes.setOwner(owner);
+
+			Statuses status = deal.getStatuses();
+			StatusesResponse statusResponse = new StatusesResponse();
+			BeanUtils.copyProperties(status, statusResponse);
+			dealsRes.setStatus(statusResponse);
+
+			return dealsRes;
+		}).collect(Collectors.toList());
+
+		Page<DealsResponse> dealsResponsePageImpl = new PageImpl<>(dealsResponses, pageRequest,
+				dealsPage.getTotalElements());
+		return dealsResponsePageImpl;
 	}
 
 	public People updateAddress(UpdateAddressRequest requestModel, Long id) {

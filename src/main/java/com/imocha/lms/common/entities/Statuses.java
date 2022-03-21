@@ -17,22 +17,22 @@ import lombok.Data;
 @Entity(name = "statuses")
 public class Statuses implements Serializable {
 
-    /** Primary key. */
-    protected static final String PK = "id";
+	/** Primary key. */
+	protected static final String PK = "id";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false, precision = 20)
-    private long id;
-    @Column(nullable = false, length = 191)
-    private String name;
-    @Column(name = "class", length = 191)
-    private String class_;
-    @Column(length = 191)
-    private String type;
-    @Column(name = "created_at")
-    private Date createdAt;
-    @Column(name = "updated_at")
-    private Date updatedAt;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(unique = true, nullable = false, precision = 20)
+	private long id;
+	@Column(nullable = false, length = 191)
+	private String name;
+	@Column(name = "class", length = 191)
+	private String clazz;
+	@Column(length = 191)
+	private String type;
+	@Column(name = "created_at")
+	private Date createdAt;
+	@Column(name = "updated_at")
+	private Date updatedAt;
 
 }

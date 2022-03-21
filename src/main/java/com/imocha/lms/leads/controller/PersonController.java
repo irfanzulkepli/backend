@@ -68,6 +68,11 @@ public class PersonController {
 		return peopleService.page(pageableRequest);
 	}
 
+	@GetMapping("{id}/deals/page")
+	public Page<DealsResponse> getDealsPage(@Valid PageableRequest pageableRequest, @PathVariable("id") Long id) {
+		return peopleService.getDealsPage(pageableRequest, id);
+	}
+
 	@DeleteMapping("/{id}")
 	public Long delete(@PathVariable("id") Long id) {
 		return peopleService.deleteByPersonId(id);
