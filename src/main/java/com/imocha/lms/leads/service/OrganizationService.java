@@ -460,6 +460,22 @@ public class OrganizationService {
 		return organizationOptional.get();
 	}
 
+	public List<PersonsResponse> getPersonsById(Long id) {
+		List<PersonOrganization> personOrganizations = personOrganizationService.findByOrganizationId(id);
+		List<PersonsResponse> personResponseList = personOrganizations.stream().map(personOrganization -> {
+			PersonsResponse personsResponse = new PersonsResponse();
+			ContactTypesResponse contactTypesResponse = new ContactTypesResponse();
+
+			BeanUtils.copyProperties(personOrganization.getPeople().getContactTypes(), contactTypesResponse);
+			BeanUtils.copyProperties(personOrganization.getPeople(), personsResponse);
+
+			personsResponse.setContactTypes(contactTypesResponse);
+			return personsResponse;
+		}).collect(Collectors.toList());
+
+		return personResponseList;
+	}
+
 	private OrganizationsResponse populateOrganizationResponse(Organizations organization) {
 		OrganizationsResponse organizationResponse = new OrganizationsResponse();
 

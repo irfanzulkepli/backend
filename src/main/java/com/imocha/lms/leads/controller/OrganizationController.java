@@ -23,6 +23,7 @@ import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationResponse;
 import com.imocha.lms.leads.model.OrganizationsRequest;
 import com.imocha.lms.leads.model.OrganizationsResponse;
+import com.imocha.lms.leads.model.PersonsResponse;
 import com.imocha.lms.leads.model.TagRequest;
 import com.imocha.lms.leads.model.UpdateAddressRequest;
 import com.imocha.lms.leads.model.UpdateDetailsRequest;
@@ -70,6 +71,11 @@ public class OrganizationController {
 	@GetMapping("{id}/deals")
 	public List<DealsResponse> getDealsById(@PathVariable("id") Long id) {
 		return organizationService.getDealsByOrganizationId(id);
+	}
+
+	@GetMapping("{id}/persons")
+	public List<PersonsResponse> getPersonsById(@PathVariable("id") Long id) {
+		return organizationService.getPersonsById(id);
 	}
 
 	@PutMapping("{id}")
