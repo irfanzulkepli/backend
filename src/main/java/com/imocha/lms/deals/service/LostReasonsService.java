@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.deals.entities.LostReasons;
 import com.imocha.lms.deals.model.AddLostReasonsRequest;
@@ -15,7 +16,6 @@ import com.imocha.lms.deals.model.UpdateLostReasonsRequest;
 import com.imocha.lms.deals.repositories.LostReasonsRepository;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.users.entities.Users;
-import com.imocha.lms.users.service.UsersService;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +30,8 @@ public class LostReasonsService {
     @Autowired
     private LostReasonsRepository lostReasonsRepository;
 
-    @Autowired
-    private UsersService usersService;
+	@Autowired
+	UserHelper userHelper;
 
     public Page<LostReasonsPageResponse> page(PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
@@ -98,7 +98,7 @@ public class LostReasonsService {
     }
 
     public long add(AddLostReasonsRequest request) {
-        Users users = usersService.get(1);
+        Users users = userHelper.getCurrentLoginUser();
 
         LostReasons lostReasons = new LostReasons();
         lostReasons.setLostReason(request.getLostReason());

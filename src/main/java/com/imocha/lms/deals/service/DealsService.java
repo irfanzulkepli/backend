@@ -6,20 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
+import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.Statuses;
@@ -61,6 +48,20 @@ import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -81,6 +82,9 @@ public class DealsService {
 	@Lazy
 	@Autowired
 	private StagesService stagesService;
+
+	@Autowired
+	UserHelper userHelper;
 
 	@Autowired
 	private UsersService usersService;
@@ -513,7 +517,7 @@ public class DealsService {
 	}
 
 	public long addDeals(AddDealsRequest request) {
-		Users user = usersService.get(1);
+		Users user = userHelper.getCurrentLoginUser();
 		Deals deals = new Deals();
 
 		if (request.getContextableType().equals(ContextableTypes.PERSON)) {

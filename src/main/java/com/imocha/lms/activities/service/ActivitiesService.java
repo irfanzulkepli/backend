@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.activities.entities.Activities;
 import com.imocha.lms.activities.entities.ActivityCollaborator;
@@ -56,6 +57,9 @@ public class ActivitiesService {
 
 	@Autowired
 	ActivityTypesRepository activityTypesRepository;
+
+	@Autowired
+	UserHelper userHelper;
 
 	@Autowired
 	UsersService usersService;
@@ -116,15 +120,10 @@ public class ActivitiesService {
 		Activities activity = new Activities();
 		BeanUtils.copyProperties(requestModel, activity);
 
-		Users user = usersService.get(1);
+		Users user = userHelper.getCurrentLoginUser();
 		activity.setUsers(user);
 
-		Statuses status = new Statuses();
-		if (requestModel.isMarkAsDone()) {
-			status = statusesService.findActivityDoneStatuses();
-		} else {
-			status = statusesService.findActivityTodoStatuses();
-		}
+		Statuses status = this.getStatusByMarkAsDone(requestModel.isMarkAsDone());
 		activity.setStatuses(status);
 
 		if (requestModel.getContextableType().equals(ContextableTypes.PERSON)) {
@@ -141,22 +140,43 @@ public class ActivitiesService {
 		Activities newActivity = activitiesRepository.save(activity);
 
 		for (long participantId : requestModel.getParticipantsIds()) {
-			People people = peopleService.get(participantId);
-			ActivityParticipant activityParticipant = new ActivityParticipant();
-			activityParticipant.setPeople(people);
-			activityParticipant.setActivities(newActivity);
+			ActivityParticipant activityParticipant = this.getActivityParticipantByParticipantId(participantId,
+					newActivity);
 			activitiesParticipantRepository.save(activityParticipant);
 		}
 
 		for (long collaboratorId : requestModel.getCollaboratorsIds()) {
-			Users collaborator = usersService.get(collaboratorId);
-			ActivityCollaborator activityCollaborator = new ActivityCollaborator();
-			activityCollaborator.setUsers(collaborator);
-			activityCollaborator.setActivities(newActivity);
+			ActivityCollaborator activityCollaborator = this.getActivityCollaboratorByCollaboratorId(collaboratorId,
+					newActivity);
 			activitiesCollaboratorRepository.save(activityCollaborator);
 		}
 
 		return newActivity.getId();
+	}
+
+	private Statuses getStatusByMarkAsDone(boolean markAsDone) {
+
+		if (markAsDone) {
+			return statusesService.findActivityDoneStatuses();
+		} else {
+			return statusesService.findActivityTodoStatuses();
+		}
+	}
+
+	private ActivityParticipant getActivityParticipantByParticipantId(long participantId, Activities newActivity) {
+		People people = peopleService.get(participantId);
+		ActivityParticipant activityParticipant = new ActivityParticipant();
+		activityParticipant.setPeople(people);
+		activityParticipant.setActivities(newActivity);
+		return activityParticipant;
+	}
+
+	private ActivityCollaborator getActivityCollaboratorByCollaboratorId(long collaboratorId, Activities newActivity) {
+		Users collaborator = usersService.get(collaboratorId);
+		ActivityCollaborator activityCollaborator = new ActivityCollaborator();
+		activityCollaborator.setUsers(collaborator);
+		activityCollaborator.setActivities(newActivity);
+		return activityCollaborator;
 	}
 
 	public Long deleteById(Long id) {

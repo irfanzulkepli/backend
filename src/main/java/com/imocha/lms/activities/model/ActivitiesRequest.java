@@ -1,6 +1,7 @@
 package com.imocha.lms.activities.model;
 
 import java.util.Date;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.imocha.lms.common.enumerator.ContextableTypes;
@@ -26,8 +27,8 @@ public class ActivitiesRequest {
 	@JsonFormat(pattern = "HH:mm")
 	private Date endTime;
 
-	private long[] collaboratorsIds;
-	private long[] participantsIds;
+	private Set<Long> collaboratorsIds;
+	private Set<Long> participantsIds;
 	private boolean markAsDone;
 	private ContextableTypes contextableType;
 	private Long dealsId;

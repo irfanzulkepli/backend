@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.deals.pipelines.entities.Pipelines;
 import com.imocha.lms.deals.pipelines.model.AddPipelinesRequest;
@@ -18,7 +19,6 @@ import com.imocha.lms.deals.pipelines.repository.PipelinesRepository;
 import com.imocha.lms.deals.service.DealsService;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.users.entities.Users;
-import com.imocha.lms.users.service.UsersService;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +45,8 @@ public class PipelinesService {
     @Autowired
     private StagesService stagesService;
 
-    @Autowired
-    private UsersService usersService;
+	@Autowired
+	UserHelper userHelper;
 
     public Page<PipelinesPageResponse> page(@Valid PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
@@ -127,7 +127,7 @@ public class PipelinesService {
         Pipelines pipelines = new Pipelines();
         pipelines.setName(request.getName());
 
-        Users users = usersService.get(1);
+        Users users = userHelper.getCurrentLoginUser();
         pipelines.setUsers(users);
 
         Pipelines savedPipelines = pipelinesRepository.save(pipelines);

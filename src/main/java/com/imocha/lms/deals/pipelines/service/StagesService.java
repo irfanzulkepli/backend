@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.imocha.common.helper.UserHelper;
 import com.imocha.lms.deals.pipelines.entities.DefaultStages;
 import com.imocha.lms.deals.pipelines.entities.Pipelines;
 import com.imocha.lms.deals.pipelines.entities.Stages;
@@ -15,7 +16,6 @@ import com.imocha.lms.deals.pipelines.repository.DefaultStagesRepository;
 import com.imocha.lms.deals.pipelines.repository.StagesRepository;
 import com.imocha.lms.deals.service.DealsService;
 import com.imocha.lms.users.entities.Users;
-import com.imocha.lms.users.service.UsersService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -37,8 +37,8 @@ public class StagesService {
     @Autowired
     private PipelinesService pipelinesService;
 
-    @Autowired
-    private UsersService usersService;
+	@Autowired
+	UserHelper userHelper;
 
     @Lazy
     @Autowired
@@ -114,7 +114,7 @@ public class StagesService {
             }
         }
 
-        Users users = usersService.get(1);
+        Users users = userHelper.getCurrentLoginUser();
         stages.setUsers(users);
 
         stages.setName(request.getName());
