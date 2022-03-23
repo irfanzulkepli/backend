@@ -6,10 +6,16 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.common.entities.Discussions;
+import com.imocha.lms.common.model.DiscussionsResponse;
+import com.imocha.lms.common.service.DiscussionsService;
+import com.imocha.lms.deals.entities.Deals;
+import com.imocha.lms.deals.model.AddCommentRequest;
 import com.imocha.lms.deals.model.AddDealsRequest;
 import com.imocha.lms.deals.model.DealsListResponse;
 import com.imocha.lms.deals.model.DealsPageResponse;
 import com.imocha.lms.deals.model.DealsResponse;
+import com.imocha.lms.deals.model.UpdateCommentRequest;
 import com.imocha.lms.deals.model.UpdateDealsRequest;
 import com.imocha.lms.deals.model.UpdateDealsTagRequest;
 import com.imocha.lms.deals.model.UpdateDealsToLostRequest;
@@ -52,11 +58,21 @@ public class DealsController {
 
 	@GetMapping("{id}/followers/page")
 	public Page<FollowerResponse> pageFollowers(@Valid PageableRequest pageableRequest, @PathVariable("id") Long id) {
-		return dealsService.getFollowersByPersonId(id, pageableRequest);
+		return dealsService.getFollowersByDealsId(id, pageableRequest);
+	}
+
+	@GetMapping("{id}/comments/list")
+	public List<DiscussionsResponse> listComments(@PathVariable("id") Long id) {
+		return dealsService.getCommentsByDealsId(id);
+	}
+
+	@PutMapping("/{id}/comments")
+	public Discussions updateComment(@RequestBody UpdateCommentRequest requestModel, @PathVariable("id") Long id) {
+		return dealsService.updateComment(id, requestModel);
 	}
 
 	@PutMapping("/{id}/followers")
-	public People updateFollowers(@RequestBody UpdateFollowerRequest requestModel, @PathVariable("id") Long id) {
+	public Deals updateFollowers(@RequestBody UpdateFollowerRequest requestModel, @PathVariable("id") Long id) {
 		return dealsService.updateFollowers(requestModel, id);
 	}
 
@@ -113,6 +129,16 @@ public class DealsController {
 	@PostMapping()
 	public long add(@RequestBody AddDealsRequest request) {
 		return dealsService.addDeals(request);
+	}
+
+	@PostMapping("/comments")
+	public Discussions addComment(@RequestBody AddCommentRequest requestModel) {
+		return dealsService.addComment(requestModel);
+	}
+
+	@DeleteMapping("/{id}/comments")
+	public long deleteCommentById(@PathVariable long id) {
+		return dealsService.deleteCommentById(id);
 	}
 
 	@DeleteMapping("/{id}")

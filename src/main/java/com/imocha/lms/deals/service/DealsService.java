@@ -8,24 +8,31 @@ import java.util.stream.Collectors;
 
 import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.common.entities.Discussions;
 import com.imocha.lms.common.entities.Followers;
+import com.imocha.lms.common.entities.Notes;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
 import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.model.ContactTypesResponse;
+import com.imocha.lms.common.model.DiscussionsResponse;
 import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.common.model.TagResponse;
+import com.imocha.lms.common.repositories.DiscussionsRepository;
+import com.imocha.lms.common.service.DiscussionsService;
 import com.imocha.lms.common.service.FollowersService;
 import com.imocha.lms.common.service.StatusesService;
 import com.imocha.lms.common.service.TagService;
 import com.imocha.lms.deals.entities.Deals;
 import com.imocha.lms.deals.entities.LostReasons;
+import com.imocha.lms.deals.model.AddCommentRequest;
 import com.imocha.lms.deals.model.AddDealsRequest;
 import com.imocha.lms.deals.model.DealsListResponse;
 import com.imocha.lms.deals.model.DealsPageResponse;
 import com.imocha.lms.deals.model.DealsResponse;
 import com.imocha.lms.deals.model.LostReasonsResponse;
+import com.imocha.lms.deals.model.UpdateCommentRequest;
 import com.imocha.lms.deals.model.UpdateDealsRequest;
 import com.imocha.lms.deals.model.UpdateDealsTagRequest;
 import com.imocha.lms.deals.model.UpdateDealsToLostRequest;
@@ -61,6 +68,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.yaml.snakeyaml.comments.CommentType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -111,6 +119,12 @@ public class DealsService {
 
 	@Autowired
 	private FollowersService followersService;
+
+	@Autowired
+	private DiscussionsService discussionsService;
+
+	@Autowired
+	private DiscussionsRepository discussionsRepository;
 
 	public Page<DealsPageResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
@@ -206,14 +220,11 @@ public class DealsService {
 
 	public Deals get(long id) {
 		Optional<Deals> dOptional = dealsRepository.findById(id);
-		if (!dOptional.isPresent()) {
-			// TODO: throw error;
-		}
-
+		dOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 		return dOptional.get();
 	}
 
-	public Page<FollowerResponse> getFollowersByPersonId(Long id, PageableRequest pageableRequest) {
+	public Page<FollowerResponse> getFollowersByDealsId(Long id, PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
 		int size = pageableRequest.getSize();
 		Direction direction = pageableRequest.getDirection();
@@ -253,15 +264,28 @@ public class DealsService {
 		return followerResponsePageImpl;
 	}
 
-	public People updateFollowers(UpdateFollowerRequest requestModel, Long id) {
-		Optional<People> peopleOptional = peopleRepository.findById(id);
+	public List<DiscussionsResponse> getCommentsByDealsId(Long id) {
+		List<DiscussionsResponse> discussions = discussionsService.getCommentsByDealsId(id);
+		return discussions;
+	}
 
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+	public Discussions updateComment(Long id, UpdateCommentRequest request) {
+		Optional<Discussions> discussionOptional = discussionsRepository.findById(id);
+		discussionOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
-		People people = peopleOptional.get();
-		List<Followers> followers = followersService.getFollowersByLeadsId(id, ContextableTypes.PERSON);
+		Discussions discussions = discussionOptional.get();
+		discussions.setCommentBody(request.getCommentBody());
+
+		discussionsService.save(discussions);
+		return discussions;
+	}
+
+	public Deals updateFollowers(UpdateFollowerRequest requestModel, Long id) {
+		Optional<Deals> dealsOptional = dealsRepository.findById(id);
+		dealsOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+
+		Deals deal = dealsOptional.get();
+		List<Followers> followers = followersService.getFollowersByLeadsId(id, ContextableTypes.DEAL);
 		followers.forEach(follower -> {
 			followersService.delete(follower);
 		});
@@ -272,8 +296,8 @@ public class DealsService {
 
 			logger.info("follower" + follower);
 
-			newFollower.setContextableId(people.getId());
-			newFollower.setContextableType(ContextableTypes.PERSON);
+			newFollower.setContextableId(deal.getId());
+			newFollower.setContextableType(ContextableTypes.DEAL);
 			newFollower.setCreatedAt(dateNow);
 			newFollower.setUpdatedAt(dateNow);
 			newFollower.setPeople(follower);
@@ -281,7 +305,7 @@ public class DealsService {
 			followersService.save(newFollower);
 		});
 
-		return people;
+		return deal;
 	}
 
 	public DealsResponse getDealsResponse(long id) {
@@ -470,6 +494,10 @@ public class DealsService {
 		return id;
 	}
 
+	public long deleteCommentById(long commentId) {
+		return discussionsService.delete(commentId);
+	}
+
 	public List<Statuses> getLeadsDealsCountByStatus(Long id) {
 		List<Deals> deals = this.dealsRepository.findByContextableTypeAndContextableId(ContextableTypes.PERSON, id);
 
@@ -514,6 +542,19 @@ public class DealsService {
 		Page<Deals> dealsPage = dealsRepository.findByContextableTypeAndContextableId(pageRequest, leadType, id);
 
 		return dealsPage;
+	}
+
+	public Discussions addComment(AddCommentRequest request) {
+		Discussions comment = new Discussions();
+
+		comment.setUsers(usersService.get(request.getUserId()));
+		comment.setCommentableId(request.getCommentableId());
+		comment.setCreatedAt(request.getCreatedAt());
+		comment.setCommentableType(ContextableTypes.DEAL);
+		comment.setCommentBody(request.getCommentBody());
+		discussionsService.save(comment);
+
+		return comment;
 	}
 
 	public long addDeals(AddDealsRequest request) {

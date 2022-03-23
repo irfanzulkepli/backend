@@ -1,6 +1,6 @@
 // Generated with g9.
 
-package com.imocha.lms.entities;
+package com.imocha.lms.common.entities;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -15,7 +15,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
