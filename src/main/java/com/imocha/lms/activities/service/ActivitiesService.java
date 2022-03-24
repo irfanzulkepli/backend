@@ -249,7 +249,7 @@ public class ActivitiesService {
 		return id;
 	}
 
-	public ActivityPageResponse markAsDone(Long id) {
+	public ActivityResponse markAsDone(Long id) {
 		Date dateNow = new Date();
 		Optional<Activities> activityOptional = activitiesRepository.findById(id);
 
@@ -266,10 +266,10 @@ public class ActivitiesService {
 
 		activitiesRepository.save(activity);
 
-		return populateActivityPageResponse(activity);
+		return populateActivityResponse(activity);
 	}
 
-	public ActivityPageResponse update(Long id, ActivitiesRequest requestModel) {
+	public ActivityResponse update(Long id, ActivitiesRequest requestModel) {
 		Date dateNow = new Date();
 		Optional<Activities> activityOptional = activitiesRepository.findById(id);
 
@@ -332,7 +332,7 @@ public class ActivitiesService {
 
 		activitiesRepository.save(activity);
 
-		return populateActivityPageResponse(activity);
+		return populateActivityResponse(activity);
 	}
 
 	public List<ActivityTypeResponse> listActivityTypes() {

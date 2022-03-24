@@ -45,12 +45,12 @@ public class ActivitiesController {
 	}
 
 	@PutMapping("{id}/done")
-	public ActivityPageResponse markAsDone(@PathVariable("id") Long id) {
+	public ActivityResponse markAsDone(@PathVariable("id") Long id) {
 		return activitiesService.markAsDone(id);
 	}
 
 	@PutMapping("{id}")
-	public ActivityPageResponse update(@RequestBody ActivitiesRequest activitiesRequest, @PathVariable("id") Long id) {
+	public ActivityResponse update(@RequestBody ActivitiesRequest activitiesRequest, @PathVariable("id") Long id) {
 		return activitiesService.update(id, activitiesRequest);
 	}
 
