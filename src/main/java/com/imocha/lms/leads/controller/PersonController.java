@@ -4,6 +4,23 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.activities.model.ActivityListResponse;
+import com.imocha.lms.leads.entities.People;
+import com.imocha.lms.leads.model.DealsResponse;
+import com.imocha.lms.leads.model.FollowerResponse;
+import com.imocha.lms.leads.model.PeopleRequest;
+import com.imocha.lms.leads.model.PersonListResponse;
+import com.imocha.lms.leads.model.PersonPageResponse;
+import com.imocha.lms.leads.model.PersonResponse;
+import com.imocha.lms.leads.model.TagRequest;
+import com.imocha.lms.leads.model.UpdateAddressRequest;
+import com.imocha.lms.leads.model.UpdateContactRequestModel;
+import com.imocha.lms.leads.model.UpdateDetailsRequest;
+import com.imocha.lms.leads.model.UpdateFollowerRequest;
+import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
+import com.imocha.lms.leads.service.PeopleService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,22 +31,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.model.ActivityResponse;
-import com.imocha.lms.leads.entities.People;
-import com.imocha.lms.leads.model.DealsResponse;
-import com.imocha.lms.leads.model.FollowerResponse;
-import com.imocha.lms.leads.model.PeopleRequest;
-import com.imocha.lms.leads.model.PersonListResponse;
-import com.imocha.lms.leads.model.PersonPageResponse;
-import com.imocha.lms.leads.model.TagRequest;
-import com.imocha.lms.leads.model.UpdateAddressRequest;
-import com.imocha.lms.leads.model.UpdateContactRequestModel;
-import com.imocha.lms.leads.model.UpdateDetailsRequest;
-import com.imocha.lms.leads.model.UpdateFollowerRequest;
-import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
-import com.imocha.lms.leads.service.PeopleService;
 
 @RestController
 @RequestMapping("person")
@@ -44,12 +45,12 @@ public class PersonController {
 	}
 
 	@GetMapping("/{id}")
-	public PersonPageResponse getById(@PathVariable("id") Long id) {
+	public PersonResponse getById(@PathVariable("id") Long id) {
 		return peopleService.findById(id);
 	}
 
 	@GetMapping("{id}/activities/list")
-	public List<ActivityResponse> getPersonActivitiesById(@PathVariable("id") Long id) {
+	public List<ActivityListResponse> getPersonActivitiesById(@PathVariable("id") Long id) {
 		return peopleService.getPersonActivitiesByPersonId(id);
 	}
 

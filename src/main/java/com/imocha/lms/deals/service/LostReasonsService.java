@@ -23,7 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class LostReasonsService {
@@ -78,9 +80,7 @@ public class LostReasonsService {
 
     public LostReasons get(long id) {
         Optional<LostReasons> lostReasonsOpt = lostReasonsRepository.findById(id);
-        if (!lostReasonsOpt.isPresent()) {
-            // TODO: throw error
-        }
+        lostReasonsOpt.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
         return lostReasonsOpt.get();
     }

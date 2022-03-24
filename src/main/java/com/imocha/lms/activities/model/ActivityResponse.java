@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.imocha.lms.common.entities.Statuses;
+import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
 import com.imocha.lms.leads.model.CollaboratorResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
@@ -22,6 +23,9 @@ public class ActivityResponse {
 	private List<CollaboratorResponse> collaborators;
 	private OwnerResponse createdBy;
 	private ActivityTypeResponse activityType;
+    private ContextableTypes contextableType;
+	private long contextableId;
+    private boolean markAsDone;
 	private Statuses status;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
@@ -35,4 +39,5 @@ public class ActivityResponse {
 
 	@JsonFormat(pattern = "HH:mm:ss")
 	private Date endTime;
+    
 }

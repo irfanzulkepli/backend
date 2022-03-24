@@ -6,9 +6,9 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.common.entities.Discussions;
 import com.imocha.lms.common.model.DiscussionsResponse;
-import com.imocha.lms.common.service.DiscussionsService;
 import com.imocha.lms.deals.entities.Deals;
 import com.imocha.lms.deals.model.AddCommentRequest;
 import com.imocha.lms.deals.model.AddDealsRequest;
@@ -20,7 +20,6 @@ import com.imocha.lms.deals.model.UpdateDealsRequest;
 import com.imocha.lms.deals.model.UpdateDealsTagRequest;
 import com.imocha.lms.deals.model.UpdateDealsToLostRequest;
 import com.imocha.lms.deals.service.DealsService;
-import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.UpdateFollowerRequest;
 
@@ -46,9 +45,19 @@ public class DealsController {
 		return dealsService.page(pageableRequest);
 	}
 
+	@GetMapping("list")
+	public List<DealsListResponse> list() {
+		return dealsService.list();
+	}
+
 	@GetMapping({ "list/pipeline", "list/pipeline/{id}" })
 	public List<DealsListResponse> listPipelineView(@PathVariable(required = false) String id) {
 		return dealsService.listPipelineView(id);
+	}
+
+	@GetMapping("activities/list")
+	public List<ActivityListResponse> getActivitiesById() {
+		return dealsService.getDealsActivityList();
 	}
 
 	@GetMapping("/{id}")

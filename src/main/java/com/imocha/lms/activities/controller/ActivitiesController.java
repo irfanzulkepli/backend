@@ -4,6 +4,13 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.activities.model.ActivitiesRequest;
+import com.imocha.lms.activities.model.ActivityPageResponse;
+import com.imocha.lms.activities.model.ActivityResponse;
+import com.imocha.lms.activities.service.ActivitiesService;
+import com.imocha.lms.leads.model.ActivityTypeResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,12 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.model.ActivitiesRequest;
-import com.imocha.lms.activities.model.ActivityResponse;
-import com.imocha.lms.activities.service.ActivitiesService;
-import com.imocha.lms.leads.model.ActivityTypeResponse;
-
 @RestController
 @RequestMapping("activities")
 public class ActivitiesController {
@@ -29,8 +30,13 @@ public class ActivitiesController {
 	private ActivitiesService activitiesService;
 
 	@GetMapping("page")
-	public Page<ActivityResponse> page(@Valid PageableRequest pageableRequest) {
+	public Page<ActivityPageResponse> page(@Valid PageableRequest pageableRequest) {
 		return activitiesService.page(pageableRequest);
+	}
+
+	@GetMapping("/{id}")
+	public ActivityResponse get(@PathVariable("id") long id) {
+		return activitiesService.get(id);
 	}
 
 	@GetMapping("activityTypes/list")
@@ -39,12 +45,12 @@ public class ActivitiesController {
 	}
 
 	@PutMapping("{id}/done")
-	public ActivityResponse markAsDone(@PathVariable("id") Long id) {
+	public ActivityPageResponse markAsDone(@PathVariable("id") Long id) {
 		return activitiesService.markAsDone(id);
 	}
 
 	@PutMapping("{id}")
-	public ActivityResponse update(@RequestBody ActivitiesRequest activitiesRequest, @PathVariable("id") Long id) {
+	public ActivityPageResponse update(@RequestBody ActivitiesRequest activitiesRequest, @PathVariable("id") Long id) {
 		return activitiesService.update(id, activitiesRequest);
 	}
 

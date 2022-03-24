@@ -27,7 +27,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,8 +47,8 @@ public class PipelinesService {
     @Autowired
     private StagesService stagesService;
 
-	@Autowired
-	UserHelper userHelper;
+    @Autowired
+    UserHelper userHelper;
 
     public Page<PipelinesPageResponse> page(@Valid PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
@@ -107,9 +109,7 @@ public class PipelinesService {
 
     public Pipelines get(long id) {
         Optional<Pipelines> pOptional = pipelinesRepository.findById(id);
-        if (!pOptional.isPresent()) {
-            // TODO: throw error;
-        }
+        pOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
         return pOptional.get();
     }
@@ -117,7 +117,7 @@ public class PipelinesService {
     public Pipelines getFirstPipelines() {
         List<Pipelines> list = pipelinesRepository.findAll();
         if (list.size() <= 0) {
-            // TODO: throw error;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
         }
 
         return list.get(0);

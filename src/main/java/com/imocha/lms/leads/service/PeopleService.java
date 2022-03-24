@@ -6,23 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.entities.Activities;
-import com.imocha.lms.activities.entities.ActivityTypes;
-import com.imocha.lms.activities.model.ActivityResponse;
+import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.activities.service.ActivitiesService;
 import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.entities.Emails;
@@ -50,21 +35,19 @@ import com.imocha.lms.leads.entities.ContactTypes;
 import com.imocha.lms.leads.entities.Organizations;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.entities.PersonOrganization;
-import com.imocha.lms.leads.model.ActivityTypeResponse;
-import com.imocha.lms.leads.model.CollaboratorResponse;
 import com.imocha.lms.leads.model.ContactRequest;
 import com.imocha.lms.leads.model.DealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationResponse;
 import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
-import com.imocha.lms.leads.model.ParticipantResponse;
 import com.imocha.lms.leads.model.PeopleListResponse;
 import com.imocha.lms.leads.model.PeopleRequest;
 import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.leads.model.PersonListResponse;
 import com.imocha.lms.leads.model.PersonOrganizationRequest;
 import com.imocha.lms.leads.model.PersonPageResponse;
+import com.imocha.lms.leads.model.PersonResponse;
 import com.imocha.lms.leads.model.TagRequest;
 import com.imocha.lms.leads.model.UpdateAddressRequest;
 import com.imocha.lms.leads.model.UpdateContactRequestModel;
@@ -74,6 +57,19 @@ import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
 import com.imocha.lms.leads.repositories.PeopleRepository;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -137,7 +133,7 @@ public class PeopleService {
 		Page<People> peoplePage = this.peopleRepository.findByActiveTrue(pageRequest);
 
 		List<PersonPageResponse> personResponseList = peoplePage.getContent().stream().map(people -> {
-			return generatePersonResponse(people);
+			return generatePersonPageResponse(people);
 		}).collect(Collectors.toList());
 
 		Page<PersonPageResponse> personResponsePageImpl = new PageImpl<>(personResponseList, pageRequest,
@@ -145,9 +141,9 @@ public class PeopleService {
 		return personResponsePageImpl;
 	}
 
-	public PersonPageResponse findById(Long id) {
+	public PersonResponse findById(Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-		PersonPageResponse personResponse = new PersonPageResponse();
+		PersonResponse personResponse = new PersonResponse();
 
 		if (!peopleOptional.isEmpty()) {
 			People people = peopleOptional.get();
@@ -171,52 +167,8 @@ public class PeopleService {
 		return peopleList;
 	}
 
-	public List<ActivityResponse> getPersonActivitiesByPersonId(Long id) {
-		List<Activities> activities = activitiesService.getActivitiesByLeadId(id, ContextableTypes.PERSON);
-
-		List<ActivityResponse> activityRes = activities.stream().map(activity -> {
-			ActivityResponse activityResponse = new ActivityResponse();
-			List<People> pariticipants = activitiesService.getParticipantsByActivityId(activity);
-			List<Users> collaborators = activitiesService.getCollaboratorsByActivity(activity);
-
-			List<ParticipantResponse> participantsRes = pariticipants.stream().map(participant -> {
-				ParticipantResponse participantResponse = new ParticipantResponse();
-				BeanUtils.copyProperties(participant, participantResponse);
-
-				return participantResponse;
-			}).collect(Collectors.toList());
-
-			List<CollaboratorResponse> collaboratorsRes = collaborators.stream().map(collaborator -> {
-				CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
-				BeanUtils.copyProperties(collaborator, collaboratorResponse);
-
-				return collaboratorResponse;
-			}).collect(Collectors.toList());
-
-			ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
-			ActivityTypes activityTypes = activity.getActivityTypes();
-			BeanUtils.copyProperties(activityTypes, activityTypeResponse);
-
-			activityResponse.setActivityType(activityTypeResponse);
-			activityResponse.setCollaborators(collaboratorsRes);
-			activityResponse.setParticipants(participantsRes);
-			activityResponse.setId(activity.getId());
-			activityResponse.setTitle(activity.getTitle());
-			activityResponse.setDescription(activity.getDescription());
-			activityResponse.setStartDate(activity.getStartedAt());
-			activityResponse.setStartTime(activity.getStartTime());
-			activityResponse.setEndDate(activity.getEndedAt());
-			activityResponse.setEndTime(activity.getEndTime());
-			activityResponse.setStatus(activity.getStatuses());
-
-			OwnerResponse owner = new OwnerResponse();
-			BeanUtils.copyProperties(activity.getUsers(), owner);
-			activityResponse.setCreatedBy(owner);
-
-			return activityResponse;
-		}).collect(Collectors.toList());
-
-		return activityRes;
+	public List<ActivityListResponse> getPersonActivitiesByPersonId(Long id) {
+		return activitiesService.getActivitiesByContextableTypeAndContextableId(ContextableTypes.PERSON, id);
 	}
 
 	public Page<FollowerResponse> getFollowersByPersonId(Long id, PageableRequest pageableRequest) {
@@ -647,9 +599,7 @@ public class PeopleService {
 
 	public People get(long id) {
 		Optional<People> pOptional = peopleRepository.findById(id);
-		if (pOptional.isEmpty()) {
-			// TODO: throw error
-		}
+		pOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		return pOptional.get();
 	}
@@ -720,10 +670,66 @@ public class PeopleService {
 		});
 	}
 
-	private PersonPageResponse generatePersonResponse(People people) {
+	private PersonPageResponse generatePersonPageResponse(People people) {
 		Long id = people.getId();
 
 		PersonPageResponse personResponse = new PersonPageResponse();
+
+		ContactTypesResponse contactTypes = new ContactTypesResponse();
+		BeanUtils.copyProperties(people.getContactTypes(), contactTypes);
+
+		BeanUtils.copyProperties(people, personResponse);
+		personResponse.setContactTypes(contactTypes);
+
+		List<EmailResponse> emailResponses = emailService.getPersonEmailById(id);
+		personResponse.setEmails(emailResponses);
+
+		List<PhoneResponse> phoneResponses = phoneService.getPersonPhoneById(id);
+		personResponse.setPhones(phoneResponses);
+
+		OwnerResponse owner = new OwnerResponse();
+		BeanUtils.copyProperties(people.getOwner(), owner);
+
+		personResponse.setCountries(people.getCountries());
+
+		personResponse.setOwner(owner);
+		personResponse.setCreatedAt(people.getCreatedAt());
+
+		List<PersonOrganization> personOrganizations = personOrganizationService.findByPeopleId(id);
+
+		List<OrganizationResponse> organizationResponses = personOrganizations.stream().map(personOrganization -> {
+			OrganizationResponse orResponse = new OrganizationResponse();
+
+			orResponse.setId(personOrganization.getOrganizations().getId());
+			orResponse.setName(personOrganization.getOrganizations().getName());
+			orResponse.setJobTitle(personOrganization.getJobTitle());
+
+			ContactTypesResponse organizationContactTypes = new ContactTypesResponse();
+			BeanUtils.copyProperties(personOrganization.getOrganizations().getContactTypes(), organizationContactTypes);
+
+			orResponse.setContactTypes(organizationContactTypes);
+
+			return orResponse;
+		}).collect(Collectors.toList());
+
+		Long openDeals = dealsService.getLeadsOpenDealsCountByStatus(id, ContextableTypes.PERSON);
+		Long closedDeals = dealsService.getLeadsClosedDealsCountByStatus(id, ContextableTypes.PERSON);
+
+		personResponse.setClosedDealsCount(closedDeals);
+		personResponse.setOpenDealsCount(openDeals);
+
+		personResponse.setOrganizations(organizationResponses);
+
+		List<TagResponse> tags = tagService.getLeadsTagById(id, ContextableTypes.PERSON);
+		personResponse.setTags(tags);
+
+		return personResponse;
+	}
+
+	private PersonResponse generatePersonResponse(People people) {
+		Long id = people.getId();
+
+		PersonResponse personResponse = new PersonResponse();
 
 		ContactTypesResponse contactTypes = new ContactTypesResponse();
 		BeanUtils.copyProperties(people.getContactTypes(), contactTypes);

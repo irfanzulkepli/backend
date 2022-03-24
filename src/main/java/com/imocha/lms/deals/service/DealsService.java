@@ -8,9 +8,10 @@ import java.util.stream.Collectors;
 
 import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.activities.model.ActivityListResponse;
+import com.imocha.lms.activities.service.ActivitiesService;
 import com.imocha.lms.common.entities.Discussions;
 import com.imocha.lms.common.entities.Followers;
-import com.imocha.lms.common.entities.Notes;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
@@ -68,7 +69,6 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.yaml.snakeyaml.comments.CommentType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -125,6 +125,9 @@ public class DealsService {
 
 	@Autowired
 	private DiscussionsRepository discussionsRepository;
+	
+	@Autowired
+	private ActivitiesService activitiesService;
 
 	public Page<DealsPageResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
@@ -162,6 +165,18 @@ public class DealsService {
 		return pageResponse;
 	}
 
+	public List<DealsListResponse> list() {
+		List<Deals> dealsList = dealsRepository.findAll();
+		List<DealsListResponse> responseList = new ArrayList<DealsListResponse>();
+
+		for (Deals deals : dealsList) {
+			DealsListResponse response = this.mapDealsToDealsListResponse(deals);
+			responseList.add(response);
+		}
+
+		return responseList;
+	}
+
 	public List<DealsListResponse> listPipelineView(String id) {
 		long pipelinesId = 0;
 		if (StringUtils.isBlank(id)) {
@@ -180,6 +195,10 @@ public class DealsService {
 		}
 
 		return responseList;
+	}
+
+	public List<ActivityListResponse> getDealsActivityList() {
+		return activitiesService.getActivitiesByContextableType(ContextableTypes.DEAL);
 	}
 
 	private DealsListResponse mapDealsToDealsListResponse(Deals deals) {
@@ -221,6 +240,7 @@ public class DealsService {
 	public Deals get(long id) {
 		Optional<Deals> dOptional = dealsRepository.findById(id);
 		dOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+
 		return dOptional.get();
 	}
 

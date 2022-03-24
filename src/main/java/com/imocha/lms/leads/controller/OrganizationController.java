@@ -4,19 +4,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.model.ActivityResponse;
+import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.leads.entities.Organizations;
 import com.imocha.lms.leads.model.DealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
@@ -31,6 +20,17 @@ import com.imocha.lms.leads.model.UpdateFollowerRequest;
 import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
 import com.imocha.lms.leads.repositories.OrganizationRepository;
 import com.imocha.lms.leads.service.OrganizationService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("organization")
@@ -64,8 +64,8 @@ public class OrganizationController {
 	}
 
 	@GetMapping("{id}/activities/list")
-	public List<ActivityResponse> getActivitiesById(@PathVariable("id") Long id) {
-		return organizationService.getOrganizationActivitiesById(id);
+	public List<ActivityListResponse> getActivitiesById(@PathVariable("id") Long id) {
+		return organizationService.getOrganizationActivitiesByOrganizationId(id);
 	}
 
 	@GetMapping("{id}/deals")

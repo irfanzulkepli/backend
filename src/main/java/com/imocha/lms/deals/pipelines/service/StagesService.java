@@ -21,7 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,9 +81,7 @@ public class StagesService {
 
     public Stages get(long id) {
         Optional<Stages> sOptional = stagesRepository.findById(id);
-        if (!sOptional.isPresent()) {
-            // TODO: throw error
-        }
+        sOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
         return sOptional.get();
     }

@@ -7,6 +7,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Index;
@@ -34,6 +36,7 @@ public class Taggables implements Serializable {
 	}
 
 	@Id
+	@Enumerated(EnumType.STRING)
 	@Column(name = "taggable_type", length = 191)
 	private ContextableTypes taggableType;
 

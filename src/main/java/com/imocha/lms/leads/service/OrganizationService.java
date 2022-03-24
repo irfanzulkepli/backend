@@ -5,21 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.entities.Activities;
-import com.imocha.lms.activities.entities.ActivityTypes;
-import com.imocha.lms.activities.model.ActivityResponse;
+import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.activities.service.ActivitiesService;
 import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.entities.Followers;
@@ -40,15 +27,12 @@ import com.imocha.lms.leads.entities.ContactTypes;
 import com.imocha.lms.leads.entities.Organizations;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.entities.PersonOrganization;
-import com.imocha.lms.leads.model.ActivityTypeResponse;
-import com.imocha.lms.leads.model.CollaboratorResponse;
 import com.imocha.lms.leads.model.DealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationResponse;
 import com.imocha.lms.leads.model.OrganizationsRequest;
 import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
-import com.imocha.lms.leads.model.ParticipantResponse;
 import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.leads.model.PersonOrganizationRequest;
 import com.imocha.lms.leads.model.PersonsResponse;
@@ -60,6 +44,17 @@ import com.imocha.lms.leads.model.UpdatePersonOrganizationRequestModel;
 import com.imocha.lms.leads.repositories.OrganizationRepository;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -229,52 +224,8 @@ public class OrganizationService {
 		return organizationResponseList;
 	}
 
-	public List<ActivityResponse> getOrganizationActivitiesById(Long id) {
-		List<Activities> activities = activitiesService.getActivitiesByLeadId(id, ContextableTypes.ORGANIZATION);
-
-		List<ActivityResponse> activityRes = activities.stream().map(activity -> {
-			ActivityResponse activityResponse = new ActivityResponse();
-			List<People> pariticipants = activitiesService.getParticipantsByActivityId(activity);
-			List<Users> collaborators = activitiesService.getCollaboratorsByActivity(activity);
-
-			List<ParticipantResponse> participantsRes = pariticipants.stream().map(participant -> {
-				ParticipantResponse participantResponse = new ParticipantResponse();
-				BeanUtils.copyProperties(participant, participantResponse);
-
-				return participantResponse;
-			}).collect(Collectors.toList());
-
-			List<CollaboratorResponse> collaboratorsRes = collaborators.stream().map(collaborator -> {
-				CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
-				BeanUtils.copyProperties(collaborator, collaboratorResponse);
-
-				return collaboratorResponse;
-			}).collect(Collectors.toList());
-
-			ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
-			ActivityTypes activityTypes = activity.getActivityTypes();
-			BeanUtils.copyProperties(activityTypes, activityTypeResponse);
-
-			activityResponse.setActivityType(activityTypeResponse);
-			activityResponse.setCollaborators(collaboratorsRes);
-			activityResponse.setParticipants(participantsRes);
-			activityResponse.setId(activity.getId());
-			activityResponse.setTitle(activity.getTitle());
-			activityResponse.setDescription(activity.getDescription());
-			activityResponse.setStartDate(activity.getStartedAt());
-			activityResponse.setStartTime(activity.getStartTime());
-			activityResponse.setEndDate(activity.getEndedAt());
-			activityResponse.setEndTime(activity.getEndTime());
-			activityResponse.setStatus(activity.getStatuses());
-
-			OwnerResponse owner = new OwnerResponse();
-			BeanUtils.copyProperties(activity.getUsers(), owner);
-			activityResponse.setCreatedBy(owner);
-
-			return activityResponse;
-		}).collect(Collectors.toList());
-
-		return activityRes;
+	public List<ActivityListResponse> getOrganizationActivitiesByOrganizationId(Long id) {
+		return activitiesService.getActivitiesByContextableTypeAndContextableId(ContextableTypes.ORGANIZATION, id);
 	}
 
 	public Page<FollowerResponse> getFollowersByOrganizationId(Long id, PageableRequest pageableRequest) {

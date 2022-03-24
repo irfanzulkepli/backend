@@ -11,4 +11,6 @@ public interface ActivitiesRepository extends JpaRepository<Activities, Long> {
 
 	List<Activities> findByContextableTypeAndContextableId(ContextableTypes contextableType,
 			Long contextableId);
+
+	List<Activities> findByContextableType(ContextableTypes contextableType);
 }

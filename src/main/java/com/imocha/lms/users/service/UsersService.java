@@ -4,13 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.model.UsersListResponse;
 import com.imocha.lms.users.repository.UsersRepository;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UsersService {
@@ -35,9 +37,7 @@ public class UsersService {
 
 	public Users get(long id) {
 		Optional<Users> uOptional = usersRepository.findById(id);
-		if (!uOptional.isPresent()) {
-			// TODO: throw error
-		}
+		uOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		return uOptional.get();
 	}
