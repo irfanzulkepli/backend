@@ -8,7 +8,7 @@ import com.imocha.lms.common.model.TagResponse;
 import lombok.Data;
 
 @Data
-public class DealsResponse {
+public class LeadDealsResponse {
 
 	private Long id;
 	private Long value;

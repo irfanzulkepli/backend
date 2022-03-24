@@ -7,7 +7,7 @@ import javax.validation.Valid;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.leads.entities.Organizations;
-import com.imocha.lms.leads.model.DealsResponse;
+import com.imocha.lms.leads.model.LeadDealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationResponse;
 import com.imocha.lms.leads.model.OrganizationsRequest;
@@ -69,7 +69,7 @@ public class OrganizationController {
 	}
 
 	@GetMapping("{id}/deals")
-	public List<DealsResponse> getDealsById(@PathVariable("id") Long id) {
+	public List<LeadDealsResponse> getDealsById(@PathVariable("id") Long id) {
 		return organizationService.getDealsByOrganizationId(id);
 	}
 
@@ -79,7 +79,7 @@ public class OrganizationController {
 	}
 
 	@GetMapping("{id}/deals/page")
-	public Page<DealsResponse> getDealsPage(@Valid PageableRequest pageableRequest, @PathVariable("id") Long id) {
+	public Page<LeadDealsResponse> getDealsPage(@Valid PageableRequest pageableRequest, @PathVariable("id") Long id) {
 		return organizationService.getDealsPage(pageableRequest, id);
 	}
 

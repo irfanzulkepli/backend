@@ -27,7 +27,7 @@ import com.imocha.lms.leads.entities.ContactTypes;
 import com.imocha.lms.leads.entities.Organizations;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.entities.PersonOrganization;
-import com.imocha.lms.leads.model.DealsResponse;
+import com.imocha.lms.leads.model.LeadDealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationResponse;
 import com.imocha.lms.leads.model.OrganizationsRequest;
@@ -271,11 +271,11 @@ public class OrganizationService {
 		return followerResponsePageImpl;
 	}
 
-	public List<DealsResponse> getDealsByOrganizationId(Long id) {
+	public List<LeadDealsResponse> getDealsByOrganizationId(Long id) {
 
 		List<Deals> deals = dealsService.getDealsByLeadId(id, ContextableTypes.ORGANIZATION);
-		List<DealsResponse> dealsResponses = deals.stream().map(deal -> {
-			DealsResponse dealsRes = new DealsResponse();
+		List<LeadDealsResponse> dealsResponses = deals.stream().map(deal -> {
+			LeadDealsResponse dealsRes = new LeadDealsResponse();
 			BeanUtils.copyProperties(deal, dealsRes);
 
 			OwnerResponse owner = new OwnerResponse();
@@ -438,7 +438,7 @@ public class OrganizationService {
 		return personResponseList;
 	}
 
-	public Page<DealsResponse> getDealsPage(PageableRequest pageableRequest, Long id) {
+	public Page<LeadDealsResponse> getDealsPage(PageableRequest pageableRequest, Long id) {
 		int page = pageableRequest.getPage();
 		int size = pageableRequest.getSize();
 		Direction direction = pageableRequest.getDirection();
@@ -447,8 +447,8 @@ public class OrganizationService {
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
 		Page<Deals> dealsPage = dealsService.getDealsPageByLeadId(id, ContextableTypes.ORGANIZATION, pageRequest);
 
-		List<DealsResponse> dealsResponses = dealsPage.getContent().stream().map(deal -> {
-			DealsResponse dealsRes = new DealsResponse();
+		List<LeadDealsResponse> dealsResponses = dealsPage.getContent().stream().map(deal -> {
+			LeadDealsResponse dealsRes = new LeadDealsResponse();
 			BeanUtils.copyProperties(deal, dealsRes);
 
 			OwnerResponse owner = new OwnerResponse();
@@ -481,7 +481,7 @@ public class OrganizationService {
 			return dealsRes;
 		}).collect(Collectors.toList());
 
-		Page<DealsResponse> dealsResponsePageImpl = new PageImpl<>(dealsResponses, pageRequest,
+		Page<LeadDealsResponse> dealsResponsePageImpl = new PageImpl<>(dealsResponses, pageRequest,
 				dealsPage.getTotalElements());
 		return dealsResponsePageImpl;
 	}
