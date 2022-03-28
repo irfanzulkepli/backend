@@ -25,10 +25,10 @@ public class ActivityPageResponse {
 	// private Statuses status;
 
 	// @JsonFormat(pattern = "yyyy-MM-dd")
-	// private Date startDate;
+	// private Date startedAt;
 
 	// @JsonFormat(pattern = "yyyy-MM-dd")
-	// private Date endDate;
+	// private Date endedAt;
 
 	// @JsonFormat(pattern = "HH:mm:ss")
 	// private Date startTime;

@@ -26,10 +26,8 @@ import com.imocha.lms.common.service.StatusesService;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
 import com.imocha.lms.leads.model.CollaboratorResponse;
-import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.ParticipantResponse;
-import com.imocha.lms.leads.model.PersonResponse;
 import com.imocha.lms.leads.service.OrganizationService;
 import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
@@ -190,6 +188,57 @@ public class ActivitiesService {
 		return newActivity.getId();
 	}
 
+	public ActivityResponse update(Long id, ActivitiesRequest requestModel) {
+		Date dateNow = new Date();
+		Optional<Activities> activityOptional = activitiesRepository.findById(id);
+		activityOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+
+		Activities activity = activityOptional.get();
+		BeanUtils.copyProperties(requestModel, activity);
+
+		List<ActivityParticipant> activityParticipants = activitiesParticipantRepository.findByActivities(activity);
+		List<ActivityCollaborator> activityCollaborators = activitiesCollaboratorRepository.findByActivities(activity);
+
+		activityParticipants.forEach(activityParticipant -> {
+			activitiesParticipantRepository.delete(activityParticipant);
+		});
+		activityCollaborators.forEach(activityCollaborator -> {
+			activitiesCollaboratorRepository.delete(activityCollaborator);
+		});
+
+		Statuses status = this.getStatusByMarkAsDone(requestModel.isMarkAsDone());
+		activity.setStatuses(status);
+
+		if (requestModel.getContextableType().equals(ContextableTypes.PERSON)) {
+			activity.setContextableId(requestModel.getPersonsId());
+		} else if (requestModel.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			activity.setContextableId(requestModel.getOrganizationsId());
+		} else if (requestModel.getContextableType().equals(ContextableTypes.DEAL)) {
+			activity.setContextableId(requestModel.getDealsId());
+		}
+
+		ActivityTypes activityType = activityTypesRepository.getById(requestModel.getActivityTypeId());
+		activity.setActivityTypes(activityType);
+
+		activity.setUpdatedAt(dateNow);
+
+		Activities newActivity = activitiesRepository.save(activity);
+
+		for (long participantId : requestModel.getParticipantsIds()) {
+			ActivityParticipant activityParticipant = this.getActivityParticipantByParticipantId(participantId,
+					newActivity);
+			activitiesParticipantRepository.save(activityParticipant);
+		}
+
+		for (long collaboratorId : requestModel.getCollaboratorsIds()) {
+			ActivityCollaborator activityCollaborator = this.getActivityCollaboratorByCollaboratorId(collaboratorId,
+					newActivity);
+			activitiesCollaboratorRepository.save(activityCollaborator);
+		}
+
+		return populateActivityResponse(activity);
+	}
+
 	private Statuses getStatusByMarkAsDone(boolean markAsDone) {
 
 		if (markAsDone) {
@@ -269,72 +318,6 @@ public class ActivitiesService {
 		return populateActivityResponse(activity);
 	}
 
-	public ActivityResponse update(Long id, ActivitiesRequest requestModel) {
-		Date dateNow = new Date();
-		Optional<Activities> activityOptional = activitiesRepository.findById(id);
-
-		if (activityOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
-
-		Activities activity = activityOptional.get();
-		List<ActivityParticipant> activityParticipants = activitiesParticipantRepository.findByActivities(activity);
-		List<ActivityCollaborator> activityCollaborators = activitiesCollaboratorRepository.findByActivities(activity);
-
-		activityParticipants.forEach(activityParticipant -> {
-			activitiesParticipantRepository.delete(activityParticipant);
-		});
-		activityCollaborators.forEach(activityCollaborator -> {
-			activitiesCollaboratorRepository.delete(activityCollaborator);
-		});
-
-		Statuses status = new Statuses();
-		if (requestModel.isMarkAsDone()) {
-			status = statusesService.findActivityDoneStatuses();
-		} else {
-			status = statusesService.findActivityTodoStatuses();
-		}
-		activity.setStatuses(status);
-		activity.setStatuses(status);
-
-		ActivityTypes activityType = activityTypesRepository.getById(requestModel.getActivityTypeId());
-		activity.setActivityTypes(activityType);
-
-		activity.setUpdatedAt(dateNow);
-
-		// Set<ActivityParticipant> activityParticipantSet =
-		// requestModel.getParticipantsIds().stream()
-		// .map(participantId -> {
-		// ActivityParticipant activityParticipant = new ActivityParticipant();
-		// People people = peopleService.get(participantId);
-
-		// activityParticipant.setPeople(people);
-		// activityParticipant.setActivities(activity);
-
-		// return activitiesParticipantRepository.save(activityParticipant);
-		// }).collect(Collectors.toSet());
-
-		// activity.setActivityParticipant(activityParticipantSet);
-
-		// Set<ActivityCollaborator> activityCollaboratorSet =
-		// requestModel.getCollaboratorsIds().stream()
-		// .map(collaboratorId -> {
-		// ActivityCollaborator activityCollaborator = new ActivityCollaborator();
-		// Users collaborator = usersService.get(collaboratorId);
-
-		// activityCollaborator.setUsers(collaborator);
-		// activityCollaborator.setActivities(activity);
-
-		// return activitiesCollaboratorRepository.save(activityCollaborator);
-		// }).collect(Collectors.toSet());
-
-		// activity.setActivityCollaborator(activityCollaboratorSet);
-
-		activitiesRepository.save(activity);
-
-		return populateActivityResponse(activity);
-	}
-
 	public List<ActivityTypeResponse> listActivityTypes() {
 		List<ActivityTypes> activityTypes = activityTypesRepository.findAll();
 
@@ -377,14 +360,12 @@ public class ActivitiesService {
 		// response.setActivityType(activityTypeResponse);
 		// response.setCollaborators(collaboratorsRes);
 		// response.setParticipants(participantsRes);
-		response.setId(activity.getId());
-		response.setTitle(activity.getTitle());
-		response.setDescription(activity.getDescription());
-		response.setStartDate(activity.getStartedAt());
-		response.setStartTime(activity.getStartTime());
-		response.setEndDate(activity.getEndedAt());
-		response.setEndTime(activity.getEndTime());
+		// response.setId(activity.getId());
+		// response.setTitle(activity.getTitle());
+		// response.setDescription(activity.getDescription());
 		// response.setStatus(activity.getStatuses());
+
+		BeanUtils.copyProperties(activity, response);
 
 		// OwnerResponse owner = new OwnerResponse();
 		// BeanUtils.copyProperties(activity.getUsers(), owner);
@@ -422,8 +403,6 @@ public class ActivitiesService {
 		// activityResponse.setActivityType(activityTypeResponse);
 		// activityResponse.setCollaborators(collaboratorsRes);
 		// activityResponse.setParticipants(participantsRes);
-		// activityResponse.setStartDate(activity.getStartedAt());
-		// activityResponse.setEndDate(activity.getEndedAt());
 		// activityResponse.setStatus(activity.getStatuses());
 
 		BeanUtils.copyProperties(activity, activityResponse);
@@ -462,12 +441,21 @@ public class ActivitiesService {
 		activityResponse.setActivityType(activityTypeResponse);
 		activityResponse.setCollaborators(collaboratorsRes);
 		activityResponse.setParticipants(participantsRes);
-		activityResponse.setStartDate(activity.getStartedAt());
-		activityResponse.setEndDate(activity.getEndedAt());
+
+		log.info(activity.getStartedAt().toString());
+		log.info(activity.getStartTime().toString());
+		log.info(activity.getEndedAt().toString());
+		log.info(activity.getEndTime().toString());
+
 		activityResponse.setStatus(activity.getStatuses());
 		activityResponse.setMarkAsDone(this.getMarkAsDoneByStatus(activity.getStatuses()));
 
 		BeanUtils.copyProperties(activity, activityResponse);
+
+		log.info(activity.getStartedAt().toString());
+		log.info(activity.getStartTime().toString());
+		log.info(activity.getEndedAt().toString());
+		log.info(activity.getEndTime().toString());
 
 		OwnerResponse ownerResponse = new OwnerResponse();
 		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);

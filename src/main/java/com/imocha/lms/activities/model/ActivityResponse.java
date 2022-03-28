@@ -23,16 +23,16 @@ public class ActivityResponse {
 	private List<CollaboratorResponse> collaborators;
 	private OwnerResponse createdBy;
 	private ActivityTypeResponse activityType;
-    private ContextableTypes contextableType;
+	private ContextableTypes contextableType;
 	private long contextableId;
-    private boolean markAsDone;
+	private boolean markAsDone;
 	private Statuses status;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
-	private Date startDate;
+	private Date startedAt;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
-	private Date endDate;
+	private Date endedAt;
 
 	@JsonFormat(pattern = "HH:mm:ss")
 	private Date startTime;
