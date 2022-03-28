@@ -5,7 +5,9 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.imocha.common.model.PageableRequest;
+import com.imocha.lms.activities.entities.Activities;
 import com.imocha.lms.activities.model.ActivitiesRequest;
+import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.activities.model.ActivityPageResponse;
 import com.imocha.lms.activities.model.ActivityResponse;
 import com.imocha.lms.activities.service.ActivitiesService;
@@ -42,6 +44,11 @@ public class ActivitiesController {
 	@GetMapping("activityTypes/list")
 	public List<ActivityTypeResponse> list() {
 		return activitiesService.listActivityTypes();
+	}
+
+	@GetMapping("done")
+	public List<ActivityListResponse> done() {
+		return activitiesService.done();
 	}
 
 	@PutMapping("{id}/done")

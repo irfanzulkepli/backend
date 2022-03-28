@@ -23,11 +23,18 @@ import com.imocha.lms.activities.repositories.ActivityTypesRepository;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.common.service.StatusesService;
+import com.imocha.lms.deals.entities.Deals;
+import com.imocha.lms.deals.model.DealsResponse;
+import com.imocha.lms.deals.repositories.DealsRepository;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
 import com.imocha.lms.leads.model.CollaboratorResponse;
+import com.imocha.lms.leads.model.OrganizationResponse;
+import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.ParticipantResponse;
+import com.imocha.lms.leads.model.PeopleResponse;
+import com.imocha.lms.leads.repositories.PeopleRepository;
 import com.imocha.lms.leads.service.OrganizationService;
 import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
@@ -54,6 +61,12 @@ public class ActivitiesService {
 	ActivitiesRepository activitiesRepository;
 
 	@Autowired
+	private PeopleRepository peopleRepository;
+
+	@Autowired
+	private DealsRepository dealsRepository;
+
+	@Autowired
 	ActivitiesCollaboratorRepository activitiesCollaboratorRepository;
 
 	@Autowired
@@ -69,14 +82,15 @@ public class ActivitiesService {
 	UsersService usersService;
 
 	@Autowired
-	OrganizationService organizationService;
-
-	@Autowired
 	StatusesService statusesService;
 
 	@Lazy
 	@Autowired
 	PeopleService peopleService;
+
+	@Lazy
+	@Autowired
+	private OrganizationService organizationService;
 
 	public Page<ActivityPageResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
@@ -96,38 +110,31 @@ public class ActivitiesService {
 		return activityResponsePageImpl;
 	}
 
+	public List<ActivityListResponse> done() {
+		List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
+
+		Statuses status = getStatusByMarkAsDone(false);
+		List<Activities> activities = activitiesRepository.findByStatuses(status);
+
+		for (Activities activity : activities) {
+			ActivityListResponse response = this.populateActivityListResponse(activity);
+			responseList.add(response);
+		}
+
+		return responseList;
+	}
+
 	public ActivityResponse get(long id) {
-		Optional<Activities> aOptional = this.activitiesRepository.findById(id);
-		aOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
-		return populateActivityResponse(aOptional.get());
-	}
+        Optional<Activities> aOptional = this.activitiesRepository.findById(id);
+        aOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+        return populateActivityResponse(aOptional.get());
+    }
 
-	public List<ActivityListResponse> getActivitiesByContextableType(ContextableTypes contextableType) {
+	public List<Activities> getActivitiesByLeadId(Long id, ContextableTypes leadType) {
+		List<Activities> activities = activitiesRepository
+				.findByContextableTypeAndContextableId(leadType, id);
 
-		List<Activities> activityList = activitiesRepository.findByContextableType(contextableType);
-
-		List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
-
-		for (Activities activity : activityList) {
-			ActivityListResponse response = this.populateActivityListResponse(activity);
-			responseList.add(response);
-		}
-		return responseList;
-	}
-
-	public List<ActivityListResponse> getActivitiesByContextableTypeAndContextableId(ContextableTypes contextableType,
-			long contextableId) {
-
-		List<Activities> activityList = activitiesRepository.findByContextableTypeAndContextableId(contextableType,
-				contextableId);
-
-		List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
-
-		for (Activities activity : activityList) {
-			ActivityListResponse response = this.populateActivityListResponse(activity);
-			responseList.add(response);
-		}
-		return responseList;
+		return activities;
 	}
 
 	public List<People> getParticipantsByActivityId(Activities activity) {
@@ -139,6 +146,22 @@ public class ActivitiesService {
 
 		return peoples;
 	}
+
+	public List<ActivityListResponse> getActivitiesByContextableTypeAndContextableId(ContextableTypes contextableType,
+            long contextableId) {
+
+        List<Activities> activityList = activitiesRepository.findByContextableTypeAndContextableId(contextableType,
+                contextableId);
+
+        List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
+
+        for (Activities activity : activityList) {
+            ActivityListResponse response = this.populateActivityListResponse(activity);
+            responseList.add(response);
+        }
+        return responseList;
+    }
+
 
 	public List<Users> getCollaboratorsByActivity(Activities activity) {
 		List<ActivityCollaborator> activityCollaborators = activitiesCollaboratorRepository.findByActivities(activity);
@@ -248,17 +271,6 @@ public class ActivitiesService {
 		}
 	}
 
-	private boolean getMarkAsDoneByStatus(Statuses status) {
-
-		Statuses doneStatus = statusesService.findActivityDoneStatuses();
-
-		if (status.getId() == doneStatus.getId()) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	private ActivityParticipant getActivityParticipantByParticipantId(long participantId, Activities newActivity) {
 		People people = peopleService.get(participantId);
 		ActivityParticipant activityParticipant = new ActivityParticipant();
@@ -266,6 +278,19 @@ public class ActivitiesService {
 		activityParticipant.setActivities(newActivity);
 		return activityParticipant;
 	}
+
+	public List<ActivityListResponse> getActivitiesByContextableType(ContextableTypes contextableType) {
+
+        List<Activities> activityList = activitiesRepository.findByContextableType(contextableType);
+
+        List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
+
+        for (Activities activity : activityList) {
+            ActivityListResponse response = this.populateActivityListResponse(activity);
+            responseList.add(response);
+        }
+        return responseList;
+    }
 
 	private ActivityCollaborator getActivityCollaboratorByCollaboratorId(long collaboratorId, Activities newActivity) {
 		Users collaborator = usersService.get(collaboratorId);
@@ -277,10 +302,7 @@ public class ActivitiesService {
 
 	public Long deleteById(Long id) {
 		Optional<Activities> activityOptional = activitiesRepository.findById(id);
-
-		if (activityOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		activityOptional.orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Activities activity = activityOptional.get();
 		List<ActivityParticipant> activityParticipants = activitiesParticipantRepository.findByActivities(activity);
@@ -333,68 +355,39 @@ public class ActivitiesService {
 
 	private ActivityListResponse populateActivityListResponse(Activities activity) {
 
-		ActivityListResponse response = new ActivityListResponse();
-		// List<People> pariticipants = this.getParticipantsByActivityId(activity);
-		// List<Users> collaborators = this.getCollaboratorsByActivity(activity);
-
-		// List<ParticipantResponse> participantsRes =
-		// pariticipants.stream().map(participant -> {
-		// ParticipantResponse participantResponse = new ParticipantResponse();
-		// BeanUtils.copyProperties(participant, participantResponse);
-
-		// return participantResponse;
-		// }).collect(Collectors.toList());
-
-		// List<CollaboratorResponse> collaboratorsRes =
-		// collaborators.stream().map(collaborator -> {
-		// CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
-		// BeanUtils.copyProperties(collaborator, collaboratorResponse);
-
-		// return collaboratorResponse;
-		// }).collect(Collectors.toList());
-
-		// ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
-		// ActivityTypes activityTypes = activity.getActivityTypes();
-		// BeanUtils.copyProperties(activityTypes, activityTypeResponse);
-
-		// response.setActivityType(activityTypeResponse);
-		// response.setCollaborators(collaboratorsRes);
-		// response.setParticipants(participantsRes);
-		// response.setId(activity.getId());
-		// response.setTitle(activity.getTitle());
-		// response.setDescription(activity.getDescription());
-		// response.setStatus(activity.getStatuses());
-
-		BeanUtils.copyProperties(activity, response);
-
-		// OwnerResponse owner = new OwnerResponse();
-		// BeanUtils.copyProperties(activity.getUsers(), owner);
-		// response.setCreatedBy(owner);
-
-		return response;
-	}
-
-	private ActivityPageResponse populateActivityPageResponse(Activities activity) {
-
-		ActivityPageResponse activityResponse = new ActivityPageResponse();
+		ActivityListResponse activityResponse = new ActivityListResponse();
 		// List<People> pariticipants = getParticipantsByActivityId(activity);
 		// List<Users> collaborators = getCollaboratorsByActivity(activity);
 
-		// List<ParticipantResponse> participantsRes =
-		// pariticipants.stream().map(participant -> {
-		// ParticipantResponse participantResponse = new ParticipantResponse();
-		// BeanUtils.copyProperties(participant, participantResponse);
+		// List<ParticipantResponse> participantsRes = pariticipants.stream().map(participant -> {
+		// 	ParticipantResponse participantResponse = new ParticipantResponse();
+		// 	BeanUtils.copyProperties(participant, participantResponse);
 
-		// return participantResponse;
+		// 	return participantResponse;
 		// }).collect(Collectors.toList());
 
-		// List<CollaboratorResponse> collaboratorsRes =
-		// collaborators.stream().map(collaborator -> {
-		// CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
-		// BeanUtils.copyProperties(collaborator, collaboratorResponse);
+		// List<CollaboratorResponse> collaboratorsRes = collaborators.stream().map(collaborator -> {
+		// 	CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
+		// 	BeanUtils.copyProperties(collaborator, collaboratorResponse);
 
-		// return collaboratorResponse;
+		// 	return collaboratorResponse;
 		// }).collect(Collectors.toList());
+
+		// if (activity.getContextableType().equals(ContextableTypes.PERSON)) {
+		// 	People people = peopleRepository.getById(activity.getContextableId());
+		// 	PeopleResponse peopleResponse = new PeopleResponse();
+		// 	BeanUtils.copyProperties(people, peopleResponse);
+
+		// 	activityResponse.setPerson(peopleResponse);
+		// } else if (activity.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+		// 	OrganizationsResponse organization = organizationService.getById(activity.getContextableId());
+		// 	OrganizationResponse organizationResponse = new OrganizationResponse();
+		// 	BeanUtils.copyProperties(organization, organizationResponse);
+
+		// 	activityResponse.setOrganization(organizationResponse);
+		// } else if (activity.getContextableType().equals(ContextableTypes.DEAL)) {
+
+		// }
 
 		// ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
 		// ActivityTypes activityTypes = activity.getActivityTypes();
@@ -403,6 +396,8 @@ public class ActivitiesService {
 		// activityResponse.setActivityType(activityTypeResponse);
 		// activityResponse.setCollaborators(collaboratorsRes);
 		// activityResponse.setParticipants(participantsRes);
+		// activityResponse.setStartDate(activity.getStartedAt());
+		// activityResponse.setEndDate(activity.getEndedAt());
 		// activityResponse.setStatus(activity.getStatuses());
 
 		BeanUtils.copyProperties(activity, activityResponse);
@@ -410,6 +405,66 @@ public class ActivitiesService {
 		// OwnerResponse ownerResponse = new OwnerResponse();
 		// BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
 		// activityResponse.setCreatedBy(ownerResponse);
+
+		return activityResponse;
+	}
+
+	private ActivityPageResponse populateActivityPageResponse(Activities activity) {
+
+		ActivityPageResponse activityResponse = new ActivityPageResponse();
+		List<People> pariticipants = getParticipantsByActivityId(activity);
+		List<Users> collaborators = getCollaboratorsByActivity(activity);
+
+		List<ParticipantResponse> participantsRes = pariticipants.stream().map(participant -> {
+			ParticipantResponse participantResponse = new ParticipantResponse();
+			BeanUtils.copyProperties(participant, participantResponse);
+
+			return participantResponse;
+		}).collect(Collectors.toList());
+
+		List<CollaboratorResponse> collaboratorsRes = collaborators.stream().map(collaborator -> {
+			CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
+			BeanUtils.copyProperties(collaborator, collaboratorResponse);
+
+			return collaboratorResponse;
+		}).collect(Collectors.toList());
+
+		if (activity.getContextableType().equals(ContextableTypes.PERSON)) {
+			People people = peopleRepository.getById(activity.getContextableId());
+			PeopleResponse peopleResponse = new PeopleResponse();
+			BeanUtils.copyProperties(people, peopleResponse);
+
+			activityResponse.setPerson(peopleResponse);
+		} else if (activity.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			OrganizationsResponse organization = organizationService.getById(activity.getContextableId());
+			OrganizationResponse organizationResponse = new OrganizationResponse();
+			BeanUtils.copyProperties(organization, organizationResponse);
+
+			activityResponse.setOrganization(organizationResponse);
+		} else if (activity.getContextableType().equals(ContextableTypes.DEAL)) {
+			Deals deal = dealsRepository.getById(activity.getContextableId());
+			DealsResponse dealsResponse = new DealsResponse();
+			BeanUtils.copyProperties(deal, dealsResponse);
+
+			activityResponse.setDeal(dealsResponse);
+		}
+
+		ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
+		ActivityTypes activityTypes = activity.getActivityTypes();
+		BeanUtils.copyProperties(activityTypes, activityTypeResponse);
+
+		activityResponse.setActivityType(activityTypeResponse);
+		activityResponse.setCollaborators(collaboratorsRes);
+		activityResponse.setParticipants(participantsRes);
+		activityResponse.setStartedAt(activity.getStartedAt());
+		activityResponse.setEndedAt(activity.getEndedAt());
+		activityResponse.setStatus(activity.getStatuses());
+
+		BeanUtils.copyProperties(activity, activityResponse);
+
+		OwnerResponse ownerResponse = new OwnerResponse();
+		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
+		activityResponse.setCreatedBy(ownerResponse);
 
 		return activityResponse;
 	}
@@ -434,6 +489,22 @@ public class ActivitiesService {
 			return collaboratorResponse;
 		}).collect(Collectors.toList());
 
+		if (activity.getContextableType().equals(ContextableTypes.PERSON)) {
+			People people = peopleRepository.getById(activity.getContextableId());
+			PeopleResponse peopleResponse = new PeopleResponse();
+			BeanUtils.copyProperties(people, peopleResponse);
+
+			activityResponse.setPerson(peopleResponse);
+		} else if (activity.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			OrganizationsResponse organization = organizationService.getById(activity.getContextableId());
+			OrganizationResponse organizationResponse = new OrganizationResponse();
+			BeanUtils.copyProperties(organization, organizationResponse);
+
+			activityResponse.setOrganization(organizationResponse);
+		} else if (activity.getContextableType().equals(ContextableTypes.DEAL)) {
+
+		}
+
 		ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
 		ActivityTypes activityTypes = activity.getActivityTypes();
 		BeanUtils.copyProperties(activityTypes, activityTypeResponse);
@@ -448,7 +519,6 @@ public class ActivitiesService {
 		log.info(activity.getEndTime().toString());
 
 		activityResponse.setStatus(activity.getStatuses());
-		activityResponse.setMarkAsDone(this.getMarkAsDoneByStatus(activity.getStatuses()));
 
 		BeanUtils.copyProperties(activity, activityResponse);
 

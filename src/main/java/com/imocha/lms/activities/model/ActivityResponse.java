@@ -8,8 +8,12 @@ import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
 import com.imocha.lms.leads.model.CollaboratorResponse;
+import com.imocha.lms.leads.model.OrganizationResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.leads.model.ParticipantResponse;
+import com.imocha.lms.leads.model.PeopleResponse;
+import com.imocha.lms.common.enumerator.ContextableTypes;
+import com.imocha.lms.deals.model.DealsResponse;
 
 import lombok.Data;
 
@@ -23,10 +27,13 @@ public class ActivityResponse {
 	private List<CollaboratorResponse> collaborators;
 	private OwnerResponse createdBy;
 	private ActivityTypeResponse activityType;
+    private boolean markAsDone;
+	private Statuses status;
 	private ContextableTypes contextableType;
 	private long contextableId;
-	private boolean markAsDone;
-	private Statuses status;
+	private PeopleResponse person;
+	private OrganizationResponse organization;
+	private DealsResponse deal;
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private Date startedAt;
