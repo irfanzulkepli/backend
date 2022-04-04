@@ -12,6 +12,7 @@ import com.imocha.lms.common.model.DiscussionsResponse;
 import com.imocha.lms.deals.entities.Deals;
 import com.imocha.lms.deals.model.AddCommentRequest;
 import com.imocha.lms.deals.model.AddDealsRequest;
+import com.imocha.lms.deals.model.DealPageRequest;
 import com.imocha.lms.deals.model.DealsListResponse;
 import com.imocha.lms.deals.model.DealsPageResponse;
 import com.imocha.lms.deals.model.DealsResponse;
@@ -41,7 +42,7 @@ public class DealsController {
 	private DealsService dealsService;
 
 	@GetMapping("page")
-	public Page<DealsPageResponse> page(@Valid PageableRequest pageableRequest) {
+	public Page<DealsPageResponse> page(@Valid DealPageRequest pageableRequest) {
 		return dealsService.page(pageableRequest);
 	}
 

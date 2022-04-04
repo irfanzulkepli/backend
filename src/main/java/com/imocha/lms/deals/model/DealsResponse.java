@@ -45,6 +45,7 @@ public class DealsResponse {
 	private StatusesResponse statuses;
 	private PeopleResponse person;
 	private OrganizationsResponse organization;
+	private PeopleResponse contactPerson;
 
 	private List<TagResponse> tags;
 }

@@ -1,9 +1,11 @@
 package com.imocha.lms.activities.service;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import com.imocha.common.helper.UserHelper;
@@ -40,6 +42,7 @@ import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
 
+import org.apache.commons.lang3.time.TimeZones;
 import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,10 +128,10 @@ public class ActivitiesService {
 	}
 
 	public ActivityResponse get(long id) {
-        Optional<Activities> aOptional = this.activitiesRepository.findById(id);
-        aOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
-        return populateActivityResponse(aOptional.get());
-    }
+		Optional<Activities> aOptional = this.activitiesRepository.findById(id);
+		aOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		return populateActivityResponse(aOptional.get());
+	}
 
 	public List<Activities> getActivitiesByLeadId(Long id, ContextableTypes leadType) {
 		List<Activities> activities = activitiesRepository
@@ -148,20 +151,19 @@ public class ActivitiesService {
 	}
 
 	public List<ActivityListResponse> getActivitiesByContextableTypeAndContextableId(ContextableTypes contextableType,
-            long contextableId) {
+			long contextableId) {
 
-        List<Activities> activityList = activitiesRepository.findByContextableTypeAndContextableId(contextableType,
-                contextableId);
+		List<Activities> activityList = activitiesRepository.findByContextableTypeAndContextableId(contextableType,
+				contextableId);
 
-        List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
+		List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
 
-        for (Activities activity : activityList) {
-            ActivityListResponse response = this.populateActivityListResponse(activity);
-            responseList.add(response);
-        }
-        return responseList;
-    }
-
+		for (Activities activity : activityList) {
+			ActivityListResponse response = this.populateActivityListResponse(activity);
+			responseList.add(response);
+		}
+		return responseList;
+	}
 
 	public List<Users> getCollaboratorsByActivity(Activities activity) {
 		List<ActivityCollaborator> activityCollaborators = activitiesCollaboratorRepository.findByActivities(activity);
@@ -281,16 +283,16 @@ public class ActivitiesService {
 
 	public List<ActivityListResponse> getActivitiesByContextableType(ContextableTypes contextableType) {
 
-        List<Activities> activityList = activitiesRepository.findByContextableType(contextableType);
+		List<Activities> activityList = activitiesRepository.findByContextableType(contextableType);
 
-        List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
+		List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
 
-        for (Activities activity : activityList) {
-            ActivityListResponse response = this.populateActivityListResponse(activity);
-            responseList.add(response);
-        }
-        return responseList;
-    }
+		for (Activities activity : activityList) {
+			ActivityListResponse response = this.populateActivityListResponse(activity);
+			responseList.add(response);
+		}
+		return responseList;
+	}
 
 	private ActivityCollaborator getActivityCollaboratorByCollaboratorId(long collaboratorId, Activities newActivity) {
 		Users collaborator = usersService.get(collaboratorId);
@@ -302,7 +304,7 @@ public class ActivitiesService {
 
 	public Long deleteById(Long id) {
 		Optional<Activities> activityOptional = activitiesRepository.findById(id);
-		activityOptional.orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		activityOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Activities activity = activityOptional.get();
 		List<ActivityParticipant> activityParticipants = activitiesParticipantRepository.findByActivities(activity);
@@ -356,55 +358,8 @@ public class ActivitiesService {
 	private ActivityListResponse populateActivityListResponse(Activities activity) {
 
 		ActivityListResponse activityResponse = new ActivityListResponse();
-		// List<People> pariticipants = getParticipantsByActivityId(activity);
-		// List<Users> collaborators = getCollaboratorsByActivity(activity);
-
-		// List<ParticipantResponse> participantsRes = pariticipants.stream().map(participant -> {
-		// 	ParticipantResponse participantResponse = new ParticipantResponse();
-		// 	BeanUtils.copyProperties(participant, participantResponse);
-
-		// 	return participantResponse;
-		// }).collect(Collectors.toList());
-
-		// List<CollaboratorResponse> collaboratorsRes = collaborators.stream().map(collaborator -> {
-		// 	CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
-		// 	BeanUtils.copyProperties(collaborator, collaboratorResponse);
-
-		// 	return collaboratorResponse;
-		// }).collect(Collectors.toList());
-
-		// if (activity.getContextableType().equals(ContextableTypes.PERSON)) {
-		// 	People people = peopleRepository.getById(activity.getContextableId());
-		// 	PeopleResponse peopleResponse = new PeopleResponse();
-		// 	BeanUtils.copyProperties(people, peopleResponse);
-
-		// 	activityResponse.setPerson(peopleResponse);
-		// } else if (activity.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
-		// 	OrganizationsResponse organization = organizationService.getById(activity.getContextableId());
-		// 	OrganizationResponse organizationResponse = new OrganizationResponse();
-		// 	BeanUtils.copyProperties(organization, organizationResponse);
-
-		// 	activityResponse.setOrganization(organizationResponse);
-		// } else if (activity.getContextableType().equals(ContextableTypes.DEAL)) {
-
-		// }
-
-		// ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
-		// ActivityTypes activityTypes = activity.getActivityTypes();
-		// BeanUtils.copyProperties(activityTypes, activityTypeResponse);
-
-		// activityResponse.setActivityType(activityTypeResponse);
-		// activityResponse.setCollaborators(collaboratorsRes);
-		// activityResponse.setParticipants(participantsRes);
-		// activityResponse.setStartDate(activity.getStartedAt());
-		// activityResponse.setEndDate(activity.getEndedAt());
-		// activityResponse.setStatus(activity.getStatuses());
 
 		BeanUtils.copyProperties(activity, activityResponse);
-
-		// OwnerResponse ownerResponse = new OwnerResponse();
-		// BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
-		// activityResponse.setCreatedBy(ownerResponse);
 
 		return activityResponse;
 	}
@@ -512,20 +467,9 @@ public class ActivitiesService {
 		activityResponse.setActivityType(activityTypeResponse);
 		activityResponse.setCollaborators(collaboratorsRes);
 		activityResponse.setParticipants(participantsRes);
-
-		log.info(activity.getStartedAt().toString());
-		log.info(activity.getStartTime().toString());
-		log.info(activity.getEndedAt().toString());
-		log.info(activity.getEndTime().toString());
-
 		activityResponse.setStatus(activity.getStatuses());
 
 		BeanUtils.copyProperties(activity, activityResponse);
-
-		log.info(activity.getStartedAt().toString());
-		log.info(activity.getStartTime().toString());
-		log.info(activity.getEndedAt().toString());
-		log.info(activity.getEndTime().toString());
 
 		OwnerResponse ownerResponse = new OwnerResponse();
 		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);

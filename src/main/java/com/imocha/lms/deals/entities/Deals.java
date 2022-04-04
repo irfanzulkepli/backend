@@ -1,6 +1,5 @@
 package com.imocha.lms.deals.entities;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -13,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.imocha.common.entity.BaseEntity;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.deals.pipelines.entities.Pipelines;
@@ -23,7 +23,7 @@ import lombok.Data;
 
 @Data
 @Entity(name = "deals")
-public class Deals implements Serializable {
+public class Deals extends BaseEntity {
 
 	/** Primary key. */
 	protected static final String PK = "id";
@@ -47,15 +47,8 @@ public class Deals implements Serializable {
 	@Column(name = "expired_at")
 	private Date expiredAt;
 	private String comment;
-	@Column(name = "created_at")
-	private Date createdAt;
-	@Column(name = "updated_at")
-	private Date updatedAt;
 	private String histories;
 
-	@ManyToOne
-	@JoinColumn(name = "created_by")
-	private Users createdBy;
 	@ManyToOne
 	@JoinColumn(name = "lost_reason_id")
 	private LostReasons lostReasons;

@@ -25,10 +25,12 @@ import com.imocha.lms.common.service.DiscussionsService;
 import com.imocha.lms.common.service.FollowersService;
 import com.imocha.lms.common.service.StatusesService;
 import com.imocha.lms.common.service.TagService;
+import com.imocha.lms.deals.entities.DealPeople;
 import com.imocha.lms.deals.entities.Deals;
 import com.imocha.lms.deals.entities.LostReasons;
 import com.imocha.lms.deals.model.AddCommentRequest;
 import com.imocha.lms.deals.model.AddDealsRequest;
+import com.imocha.lms.deals.model.DealPageRequest;
 import com.imocha.lms.deals.model.DealsListResponse;
 import com.imocha.lms.deals.model.DealsPageResponse;
 import com.imocha.lms.deals.model.DealsResponse;
@@ -43,7 +45,9 @@ import com.imocha.lms.deals.pipelines.model.PipelinesResponse;
 import com.imocha.lms.deals.pipelines.model.StagesResponse;
 import com.imocha.lms.deals.pipelines.service.PipelinesService;
 import com.imocha.lms.deals.pipelines.service.StagesService;
+import com.imocha.lms.deals.repositories.DealPeopleRepository;
 import com.imocha.lms.deals.repositories.DealsRepository;
+import com.imocha.lms.deals.specification.DealSpecification;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationsResponse;
@@ -66,6 +70,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -81,7 +86,13 @@ public class DealsService {
 	Date dateNow = new Date();
 
 	@Autowired
+	private DealSpecification dealSpecification;
+
+	@Autowired
 	private DealsRepository dealsRepository;
+
+	@Autowired
+	private DealPeopleRepository dealPeopleRepository;
 
 	@Lazy
 	@Autowired
@@ -125,18 +136,20 @@ public class DealsService {
 
 	@Autowired
 	private DiscussionsRepository discussionsRepository;
-	
+
 	@Autowired
 	private ActivitiesService activitiesService;
 
-	public Page<DealsPageResponse> page(PageableRequest pageableRequest) {
+	public Page<DealsPageResponse> page(DealPageRequest pageableRequest) {
+		Specification<Deals> spec = dealSpecification.getDealSpecification(pageableRequest);
+
 		int page = pageableRequest.getPage();
 		int size = pageableRequest.getSize();
 		Direction direction = pageableRequest.getDirection();
 		String[] properties = pageableRequest.getProperties();
 
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
-		Page<Deals> dealsPage = this.dealsRepository.findAll(pageRequest);
+		Page<Deals> dealsPage = this.dealsRepository.findAll(spec, pageRequest);
 
 		List<DealsPageResponse> dealsResponseList = dealsPage.getContent().stream().map(deals -> {
 			return this.mapDealsToDealsPageResponse(deals);
@@ -239,7 +252,7 @@ public class DealsService {
 
 	public Deals get(long id) {
 		Optional<Deals> dOptional = dealsRepository.findById(id);
-		dOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		dOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "deal not found"));
 
 		return dOptional.get();
 	}
@@ -291,7 +304,7 @@ public class DealsService {
 
 	public Discussions updateComment(Long id, UpdateCommentRequest request) {
 		Optional<Discussions> discussionOptional = discussionsRepository.findById(id);
-		discussionOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		discussionOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "discussion not found"));
 
 		Discussions discussions = discussionOptional.get();
 		discussions.setCommentBody(request.getCommentBody());
@@ -302,7 +315,7 @@ public class DealsService {
 
 	public Deals updateFollowers(UpdateFollowerRequest requestModel, Long id) {
 		Optional<Deals> dealsOptional = dealsRepository.findById(id);
-		dealsOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		dealsOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "deal not found"));
 
 		Deals deal = dealsOptional.get();
 		List<Followers> followers = followersService.getFollowersByLeadsId(id, ContextableTypes.DEAL);
@@ -368,12 +381,22 @@ public class DealsService {
 		} else if (deals.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
 			OrganizationsResponse organizations = organizationService.getById(deals.getContextableId());
 			dealsResponse.setOrganization(organizations);
+
+			PeopleResponse contactPerson = new PeopleResponse();
+			BeanUtils.copyProperties(this.getDealPeopleByDeal(deals).getPeople(), contactPerson);
+			dealsResponse.setContactPerson(contactPerson);
 		}
 
 		List<TagResponse> tags = tagService.getLeadsTagById(deals.getId(), ContextableTypes.DEAL);
 		dealsResponse.setTags(tags);
 
 		return dealsResponse;
+	}
+
+	private DealPeople getDealPeopleByDeal(Deals deal) {
+		Optional<DealPeople> dOptional = dealPeopleRepository.findByDeals(deal);
+		dOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "contact person not found"));
+		return dOptional.get();
 	}
 
 	public long update(long id, UpdateDealsRequest request) {
@@ -397,7 +420,26 @@ public class DealsService {
 		deals.setOwner(owner);
 
 		Deals savedDeals = dealsRepository.save(deals);
+
+		if (request.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			this.updateDealPeopleByPeopleIdAndDeal(request.getContactPersonId(), savedDeals);
+		}
+
 		return savedDeals.getId();
+	}
+
+	private void updateDealPeopleByPeopleIdAndDeal(long peopleId, Deals deal) {
+
+		Optional<DealPeople> dOptional = dealPeopleRepository.findByDeals(deal);
+		if (dOptional.isPresent()) {
+			dealPeopleRepository.delete(dOptional.get());
+		}
+
+		People people = peopleService.get(peopleId);
+		DealPeople dealPeople = new DealPeople();
+		dealPeople.setDeals(deal);
+		dealPeople.setPeople(people);
+		dealPeopleRepository.save(dealPeople);
 	}
 
 	public long updateStage(long id, long stagesId) {
@@ -602,8 +644,12 @@ public class DealsService {
 
 		Users owner = usersService.get(request.getOwnerId());
 		deals.setOwner(owner);
-		log.info(deals.toString());
 		Deals savedDeals = dealsRepository.save(deals);
+
+		if (request.getContextableType().equals(ContextableTypes.ORGANIZATION)) {
+			this.updateDealPeopleByPeopleIdAndDeal(request.getContactPersonId(), savedDeals);
+		}
+
 		return savedDeals.getId();
 	}
 }

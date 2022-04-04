@@ -16,6 +16,7 @@ public class AddDealsRequest {
     private long pipelinesId;
     private long stagesId;
 	private ContextableTypes contextableType;
+    private long contactPersonId;
     private long personId;
     private long organizationId;
 
