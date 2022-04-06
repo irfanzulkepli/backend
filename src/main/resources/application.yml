@@ -10,3 +10,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+
+keycloak:
+  admin_url: https://d1isjhghszo6bn.cloudfront.net/auth/admin/realms/
+  url: https://d1isjhghszo6bn.cloudfront.net/auth/
+  client_secret: 517e3d1d-220a-4c6c-8a36-8c96535e56a2
+  admin_password: password
+  admin_username: admin
+  smtp_host: alt3.gmail-smtp-in.l.google.com
+  realm_name: feng-test
+  grant_type: password
+  client_id: dev-test
+  

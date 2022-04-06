@@ -5,7 +5,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.model.ActivityListResponse;
+import com.imocha.lms.activities.model.ActivityPageResponse;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.LeadDealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
@@ -39,6 +39,11 @@ public class PersonController {
 	@Autowired
 	private PeopleService peopleService;
 
+	@GetMapping("search")
+	public Page<PersonPageResponse> search(@Valid PageableRequest pageableRequest) {
+		return peopleService.criteriaSearch(pageableRequest);
+	}
+
 	@GetMapping("list")
 	public List<PersonListResponse> list() {
 		return peopleService.list();
@@ -50,7 +55,7 @@ public class PersonController {
 	}
 
 	@GetMapping("{id}/activities/list")
-	public List<ActivityListResponse> getPersonActivitiesById(@PathVariable("id") Long id) {
+	public List<ActivityPageResponse> getPersonActivitiesById(@PathVariable("id") Long id) {
 		return peopleService.getPersonActivitiesByPersonId(id);
 	}
 

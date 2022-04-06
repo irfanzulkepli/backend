@@ -51,6 +51,8 @@ public class Users implements Serializable {
 	private Date updatedAt;
 	@Column(name = "deleted_at")
 	private Date deletedAt;
+	@Column(name = "keycloak_id")
+	private String keycloakId;
 
 	@ManyToOne
 	@JoinColumn(name = "created_by")

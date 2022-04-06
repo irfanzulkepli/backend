@@ -3,18 +3,23 @@ package com.imocha.lms.leads.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.activities.model.ActivityListResponse;
+import com.imocha.lms.activities.model.ActivityPageResponse;
 import com.imocha.lms.activities.service.ActivitiesService;
+import com.imocha.lms.common.constant.SearchOperation;
 import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.entities.Emails;
 import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.PhoneEmailTypes;
 import com.imocha.lms.common.entities.Phones;
 import com.imocha.lms.common.entities.Statuses;
+import com.imocha.lms.common.entities.SearchCriteria;
+import com.imocha.lms.common.entities.Specifications;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
 import com.imocha.lms.common.enumerator.ContextableTypes;
@@ -48,6 +53,7 @@ import com.imocha.lms.leads.model.PersonListResponse;
 import com.imocha.lms.leads.model.PersonOrganizationRequest;
 import com.imocha.lms.leads.model.PersonPageResponse;
 import com.imocha.lms.leads.model.PersonResponse;
+import com.imocha.lms.leads.model.PersonsResponse;
 import com.imocha.lms.leads.model.TagRequest;
 import com.imocha.lms.leads.model.UpdateAddressRequest;
 import com.imocha.lms.leads.model.UpdateContactRequestModel;
@@ -123,6 +129,33 @@ public class PeopleService {
 	@Autowired
 	private CountriesService countriesService;
 
+	public Page<PersonPageResponse> criteriaSearch(PageableRequest pageableRequest) {
+		int page = pageableRequest.getPage();
+		int size = pageableRequest.getSize();
+		Direction direction = pageableRequest.getDirection();
+		String[] properties = pageableRequest.getProperties();
+
+		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
+
+		Specifications<People> specification = new Specifications<People>();
+		SearchCriteria searchCriteria = new SearchCriteria();
+		searchCriteria.setKey("name");
+		searchCriteria.setOperation(SearchOperation.MATCH);
+		searchCriteria.setValue("Lead");
+		specification.add(searchCriteria);
+
+		Page<People> peoplePage = peopleRepository.findAll(specification, pageRequest);
+
+		List<PersonPageResponse> personResponseList = peoplePage.getContent().stream().map(people -> {
+			return generatePersonPageResponse(people);
+		}).collect(Collectors.toList());
+
+		Page<PersonPageResponse> personResponsePageImpl = new PageImpl<>(personResponseList, pageRequest,
+				peoplePage.getTotalElements());
+
+		return personResponsePageImpl;
+	}
+
 	public Page<PersonPageResponse> page(PageableRequest pageableRequest) {
 		int page = pageableRequest.getPage();
 		int size = pageableRequest.getSize();
@@ -145,11 +178,8 @@ public class PeopleService {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
 		PersonResponse personResponse = new PersonResponse();
 
-		if (!peopleOptional.isEmpty()) {
-			People people = peopleOptional.get();
-
-			personResponse = generatePersonResponse(people);
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+		personResponse = generatePersonResponse(peopleOptional.get());
 
 		return personResponse;
 	}
@@ -167,8 +197,8 @@ public class PeopleService {
 		return peopleList;
 	}
 
-	public List<ActivityListResponse> getPersonActivitiesByPersonId(Long id) {
-		return activitiesService.getActivitiesByContextableTypeAndContextableId(ContextableTypes.PERSON, id);
+	public List<ActivityPageResponse> getPersonActivitiesByPersonId(Long id) {
+		return activitiesService.getLeadsActivitiesByContextableTypeAndContextableId(ContextableTypes.PERSON, id);
 	}
 
 	public Page<FollowerResponse> getFollowersByPersonId(Long id, PageableRequest pageableRequest) {
@@ -283,10 +313,7 @@ public class PeopleService {
 
 	public People updateAddress(UpdateAddressRequest requestModel, Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 
@@ -301,10 +328,7 @@ public class PeopleService {
 
 	public People updateDetails(UpdateDetailsRequest requestModel, Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 
@@ -321,10 +345,7 @@ public class PeopleService {
 
 	public People updateFollowers(UpdateFollowerRequest requestModel, Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 		List<Followers> followers = followersService.getFollowersByLeadsId(id, ContextableTypes.PERSON);
@@ -352,10 +373,7 @@ public class PeopleService {
 
 	public People updateContact(UpdateContactRequestModel requestModel, Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 		List<ContactRequest> emailsRequest = requestModel.getEmails();
@@ -371,10 +389,7 @@ public class PeopleService {
 
 	public People updateOrganizations(UpdatePersonOrganizationRequestModel requestModel, Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 
@@ -388,10 +403,7 @@ public class PeopleService {
 
 	public People addTag(TagRequest requestModel, Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 		Tags tag = tagService.getByTagId(requestModel.getId());
@@ -411,10 +423,7 @@ public class PeopleService {
 
 	public Long deleteTag(TagRequest requestModel, Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 
@@ -447,33 +456,29 @@ public class PeopleService {
 
 	public Long deleteByPersonId(Long id) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
-		if (!peopleOptional.isEmpty()) {
-			People people = peopleOptional.get();
+		People people = peopleOptional.get();
 
-			if (!people.isActive()) {
-				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-			} else {
-				people.setActive(false);
-
-				peopleRepository.save(people);
-				personOrganizationService.delete(id);
-
-				List<PhoneResponse> phoneResponses = phoneService.getPersonPhoneById(id);
-				phoneResponses.forEach(phoneRes -> {
-					phoneService.deleteById(phoneRes.getId());
-				});
-
-				List<EmailResponse> emailResponses = emailService.getPersonEmailById(id);
-				emailResponses.forEach(emailRes -> {
-					emailService.deleteById(emailRes.getId());
-				});
-
-				return people.getId();
-			}
-
-		} else {
+		if (!people.isActive()) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
+		} else {
+			people.setActive(false);
+
+			peopleRepository.save(people);
+			personOrganizationService.delete(id);
+
+			List<PhoneResponse> phoneResponses = phoneService.getPersonPhoneById(id);
+			phoneResponses.forEach(phoneRes -> {
+				phoneService.deleteById(phoneRes.getId());
+			});
+
+			List<EmailResponse> emailResponses = emailService.getPersonEmailById(id);
+			emailResponses.forEach(emailRes -> {
+				emailService.deleteById(emailRes.getId());
+			});
+
+			return people.getId();
 		}
 	}
 
@@ -560,10 +565,7 @@ public class PeopleService {
 
 	public People updatePeople(Long id, PeopleRequest peopleRequest) {
 		Optional<People> peopleOptional = peopleRepository.findById(id);
-
-		if (peopleOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		peopleOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		People people = peopleOptional.get();
 		BeanUtils.copyProperties(peopleRequest, people);

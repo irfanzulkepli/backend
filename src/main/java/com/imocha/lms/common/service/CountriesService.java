@@ -38,11 +38,6 @@ public class CountriesService {
 
 	public Countries getCountryById(Long id) {
 		Optional<Countries> countryOptional = countriesRepository.findById(id);
-
-		if (countryOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
-
-		return countryOptional.get();
+		return countryOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 	}
 }

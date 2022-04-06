@@ -119,10 +119,7 @@ public class OrganizationService {
 
 	public OrganizationsResponse getById(Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 
@@ -159,10 +156,7 @@ public class OrganizationService {
 
 	public Organizations update(OrganizationsRequest requestModel, Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 		BeanUtils.copyProperties(requestModel, organization);
@@ -188,10 +182,7 @@ public class OrganizationService {
 
 	public Long delete(Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 
@@ -291,10 +282,7 @@ public class OrganizationService {
 
 	public Organizations updateAddress(UpdateAddressRequest requestModel, Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 
@@ -309,10 +297,7 @@ public class OrganizationService {
 
 	public Organizations updateDetails(UpdateDetailsRequest requestModel, Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 
@@ -326,10 +311,7 @@ public class OrganizationService {
 
 	public Organizations updateFollowers(UpdateFollowerRequest requestModel, Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 		List<Followers> followers = followersService.getFollowersByLeadsId(id, ContextableTypes.ORGANIZATION);
@@ -355,10 +337,7 @@ public class OrganizationService {
 
 	public Organizations updatePersons(UpdatePersonOrganizationRequestModel requestModel, Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 
@@ -372,10 +351,7 @@ public class OrganizationService {
 
 	public Organizations addTag(TagRequest requestModel, Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 
@@ -395,10 +371,7 @@ public class OrganizationService {
 
 	public Long deleteTag(TagRequest requestModel, Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Organizations organization = organizationOptional.get();
 
@@ -414,10 +387,7 @@ public class OrganizationService {
 
 	public Organizations getOrganizationById(Long id) {
 		Optional<Organizations> organizationOptional = organizationRepository.findById(id);
-
-		if (organizationOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		organizationOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		return organizationOptional.get();
 	}

@@ -134,8 +134,7 @@ public class ActivitiesService {
 	}
 
 	public List<Activities> getActivitiesByLeadId(Long id, ContextableTypes leadType) {
-		List<Activities> activities = activitiesRepository
-				.findByContextableTypeAndContextableId(leadType, id);
+		List<Activities> activities = activitiesRepository.findByContextableTypeAndContextableId(leadType, id);
 
 		return activities;
 	}
@@ -160,6 +159,21 @@ public class ActivitiesService {
 
 		for (Activities activity : activityList) {
 			ActivityListResponse response = this.populateActivityListResponse(activity);
+			responseList.add(response);
+		}
+		return responseList;
+	}
+
+	public List<ActivityPageResponse> getLeadsActivitiesByContextableTypeAndContextableId(
+			ContextableTypes contextableType, long contextableId) {
+
+		List<Activities> activityList = activitiesRepository.findByContextableTypeAndContextableId(contextableType,
+				contextableId);
+
+		List<ActivityPageResponse> responseList = new ArrayList<ActivityPageResponse>();
+
+		for (Activities activity : activityList) {
+			ActivityPageResponse response = this.populateActivityPageResponse(activity);
 			responseList.add(response);
 		}
 		return responseList;
@@ -327,9 +341,7 @@ public class ActivitiesService {
 		Optional<Activities> activityOptional = activitiesRepository.findById(id);
 
 		Long doneStatusId = (long) 12;
-		if (activityOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
+		activityOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		Activities activity = activityOptional.get();
 

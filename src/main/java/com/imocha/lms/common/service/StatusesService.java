@@ -2,13 +2,13 @@ package com.imocha.lms.common.service;
 
 import java.util.Optional;
 
-import com.imocha.lms.common.entities.Statuses;
-import com.imocha.lms.common.repositories.StatusesRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.imocha.lms.common.entities.Statuses;
+import com.imocha.lms.common.repositories.StatusesRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,22 +25,18 @@ public class StatusesService {
 
 	public Statuses findById(Long id) {
 		Optional<Statuses> statusOptional = statusesRepository.findById(id);
-
-		if (statusOptional.isEmpty()) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
-		}
-		return statusOptional.get();
+		return statusOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 	}
 
-	public Statuses findDealLostStatuses(){
+	public Statuses findDealLostStatuses() {
 		return this.findStatusesByNameAndType("status_lost", "deal");
 	}
 
-	public Statuses findDealWonStatuses(){
+	public Statuses findDealWonStatuses() {
 		return this.findStatusesByNameAndType("status_won", "deal");
 	}
 
-	public Statuses findDealOpenStatuses(){
+	public Statuses findDealOpenStatuses() {
 		return this.findStatusesByNameAndType("status_open", "deal");
 	}
 
