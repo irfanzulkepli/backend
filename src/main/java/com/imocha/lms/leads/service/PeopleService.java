@@ -3,23 +3,18 @@ package com.imocha.lms.leads.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.activities.model.ActivityPageResponse;
 import com.imocha.lms.activities.service.ActivitiesService;
-import com.imocha.lms.common.constant.SearchOperation;
 import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.common.entities.Emails;
 import com.imocha.lms.common.entities.Followers;
 import com.imocha.lms.common.entities.PhoneEmailTypes;
 import com.imocha.lms.common.entities.Phones;
 import com.imocha.lms.common.entities.Statuses;
-import com.imocha.lms.common.entities.SearchCriteria;
-import com.imocha.lms.common.entities.Specifications;
 import com.imocha.lms.common.entities.Taggables;
 import com.imocha.lms.common.entities.Tags;
 import com.imocha.lms.common.enumerator.ContextableTypes;
@@ -41,8 +36,8 @@ import com.imocha.lms.leads.entities.Organizations;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.entities.PersonOrganization;
 import com.imocha.lms.leads.model.ContactRequest;
-import com.imocha.lms.leads.model.LeadDealsResponse;
 import com.imocha.lms.leads.model.FollowerResponse;
+import com.imocha.lms.leads.model.LeadDealsResponse;
 import com.imocha.lms.leads.model.OrganizationResponse;
 import com.imocha.lms.leads.model.OrganizationsResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
@@ -53,7 +48,6 @@ import com.imocha.lms.leads.model.PersonListResponse;
 import com.imocha.lms.leads.model.PersonOrganizationRequest;
 import com.imocha.lms.leads.model.PersonPageResponse;
 import com.imocha.lms.leads.model.PersonResponse;
-import com.imocha.lms.leads.model.PersonsResponse;
 import com.imocha.lms.leads.model.TagRequest;
 import com.imocha.lms.leads.model.UpdateAddressRequest;
 import com.imocha.lms.leads.model.UpdateContactRequestModel;
@@ -137,14 +131,15 @@ public class PeopleService {
 
 		PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
 
-		Specifications<People> specification = new Specifications<People>();
-		SearchCriteria searchCriteria = new SearchCriteria();
-		searchCriteria.setKey("name");
-		searchCriteria.setOperation(SearchOperation.MATCH);
-		searchCriteria.setValue("Lead");
-		specification.add(searchCriteria);
+		// Specification<People> specification = new Specification<People>();
+		// SearchCriteria searchCriteria = new SearchCriteria();
+		// searchCriteria.setKey("name");
+		// searchCriteria.setOperation(SearchOperation.MATCH);
+		// searchCriteria.setValue("Lead");
+		// specification.add(searchCriteria);
 
-		Page<People> peoplePage = peopleRepository.findAll(specification, pageRequest);
+		// Page<People> peoplePage = peopleRepository.findAll(specification, pageRequest);
+		Page<People> peoplePage = peopleRepository.findAll(pageRequest);
 
 		List<PersonPageResponse> personResponseList = peoplePage.getContent().stream().map(people -> {
 			return generatePersonPageResponse(people);
@@ -302,6 +297,9 @@ public class PeopleService {
 			StatusesResponse statusResponse = new StatusesResponse();
 			BeanUtils.copyProperties(status, statusResponse);
 			dealsRes.setStatus(statusResponse);
+
+			String nextActivity = activitiesService.getNextActivityByDeal(deal.getId());
+			dealsRes.setNextActivity(nextActivity);
 
 			return dealsRes;
 		}).collect(Collectors.toList());

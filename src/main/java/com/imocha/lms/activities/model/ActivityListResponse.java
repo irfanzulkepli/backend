@@ -1,9 +1,7 @@
 package com.imocha.lms.activities.model;
 
-import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.leads.model.ActivityTypeResponse;
 import com.imocha.lms.leads.model.CollaboratorResponse;
@@ -15,25 +13,19 @@ import lombok.Data;
 @Data
 public class ActivityListResponse {
 
-    private Long id;
-    private String title;
-    private String description;
-    // private List<ParticipantResponse> participants;
-    // private List<CollaboratorResponse> collaborators;
-    // private OwnerResponse createdBy;
-    // private ActivityTypeResponse activityType;
-    // private Statuses status;
+	private Long id;
+	private String title;
+	private String description;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date startedAt;
+	private Statuses status;
+	private ActivityTypeResponse activityType;
+	private OwnerResponse createdBy;
+	private List<ParticipantResponse> participants;
+	private List<CollaboratorResponse> collaborators;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private Date endedAt;
-
-    @JsonFormat(pattern = "HH:mm:ss")
-    private Date startTime;
-
-    @JsonFormat(pattern = "HH:mm:ss")
-    private Date endTime;
+	private String startedAt;
+	private String endedAt;
+	private String startTime;
+	private String endTime;
 
 }

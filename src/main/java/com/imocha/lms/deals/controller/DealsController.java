@@ -6,7 +6,6 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.common.entities.Discussions;
 import com.imocha.lms.common.model.DiscussionsResponse;
 import com.imocha.lms.deals.entities.Deals;
@@ -26,6 +25,7 @@ import com.imocha.lms.leads.model.UpdateFollowerRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +35,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("deals")
 public class DealsController {
@@ -54,11 +57,6 @@ public class DealsController {
 	@GetMapping({ "list/pipeline", "list/pipeline/{id}" })
 	public List<DealsListResponse> listPipelineView(@PathVariable(required = false) String id) {
 		return dealsService.listPipelineView(id);
-	}
-
-	@GetMapping("activities/list")
-	public List<ActivityListResponse> getActivitiesById() {
-		return dealsService.getDealsActivityList();
 	}
 
 	@GetMapping("/{id}")
@@ -107,7 +105,7 @@ public class DealsController {
 	}
 
 	@PutMapping("/{id}")
-	public long update(@PathVariable long id, @RequestBody UpdateDealsRequest request) {
+	public long update(@PathVariable long id, @RequestBody UpdateDealsRequest request, Authentication authentication) {
 		return dealsService.update(id, request);
 	}
 

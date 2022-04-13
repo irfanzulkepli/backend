@@ -5,7 +5,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import com.imocha.common.helper.UserHelper;
@@ -42,7 +41,6 @@ import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
 
-import org.apache.commons.lang3.time.TimeZones;
 import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,6 +129,41 @@ public class ActivitiesService {
 		Optional<Activities> aOptional = this.activitiesRepository.findById(id);
 		aOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 		return populateActivityResponse(aOptional.get());
+	}
+
+	public String getNextActivityByDeal(long dealId) {
+
+		List<Activities> activityList = activitiesRepository.findByContextableTypeAndContextableId(
+				ContextableTypes.DEAL, dealId);
+
+		if (activityList.size() > 0) {
+
+			Activities nearestActivity = activityList.get(0);
+			Date nearestDate = activityList.get(0).getStartedAt();
+			Date nearestTime = activityList.get(0).getStartTime();
+
+			for (Activities activity : activityList) {
+
+				if (activity.getStartedAt().compareTo(nearestDate) < 0) {
+					nearestActivity = activity;
+					nearestDate = activity.getStartedAt();
+					nearestTime = activity.getStartTime();
+				} else if (activity.getStartedAt().compareTo(nearestDate) == 0) {
+
+					if (activity.getStartTime().compareTo(nearestTime) < 0) {
+						nearestActivity = activity;
+						nearestDate = activity.getStartedAt();
+						nearestTime = activity.getStartTime();
+					}
+				}
+
+			}
+
+			String startedAt = this.getDateIgnoreTimezone(nearestActivity.getStartedAt());
+			return startedAt + " (" + nearestActivity.getActivityTypes().getName() + ")";
+		} else {
+			return null;
+		}
 	}
 
 	public List<Activities> getActivitiesByLeadId(Long id, ContextableTypes leadType) {
@@ -295,6 +328,25 @@ public class ActivitiesService {
 		return activityParticipant;
 	}
 
+	public List<ActivityListResponse> list(ContextableTypes contextableType) {
+
+		List<Activities> activityList = new ArrayList<Activities>();
+
+		if (contextableType == null) {
+			activityList = activitiesRepository.findAll();
+		} else {
+			activityList = activitiesRepository.findByContextableType(contextableType);
+		}
+
+		List<ActivityListResponse> responseList = new ArrayList<ActivityListResponse>();
+
+		for (Activities activity : activityList) {
+			ActivityListResponse response = this.populateActivityListResponse(activity);
+			responseList.add(response);
+		}
+		return responseList;
+	}
+
 	public List<ActivityListResponse> getActivitiesByContextableType(ContextableTypes contextableType) {
 
 		List<Activities> activityList = activitiesRepository.findByContextableType(contextableType);
@@ -370,6 +422,45 @@ public class ActivitiesService {
 	private ActivityListResponse populateActivityListResponse(Activities activity) {
 
 		ActivityListResponse activityResponse = new ActivityListResponse();
+		List<People> pariticipants = getParticipantsByActivityId(activity);
+		List<Users> collaborators = getCollaboratorsByActivity(activity);
+
+		List<ParticipantResponse> participantsRes = pariticipants.stream().map(participant -> {
+			ParticipantResponse participantResponse = new ParticipantResponse();
+			BeanUtils.copyProperties(participant, participantResponse);
+
+			return participantResponse;
+		}).collect(Collectors.toList());
+
+		List<CollaboratorResponse> collaboratorsRes = collaborators.stream().map(collaborator -> {
+			CollaboratorResponse collaboratorResponse = new CollaboratorResponse();
+			BeanUtils.copyProperties(collaborator, collaboratorResponse);
+
+			return collaboratorResponse;
+		}).collect(Collectors.toList());
+
+		String startedAt = this.getDateIgnoreTimezone(activity.getStartedAt());
+		String endedAt = this.getDateIgnoreTimezone(activity.getEndedAt());
+		String startTime = this.getTimeIgnoreTimezone(activity.getStartTime());
+		String endTime = this.getTimeIgnoreTimezone(activity.getEndTime());
+
+		activityResponse.setStartedAt(startedAt);
+		activityResponse.setEndedAt(endedAt);
+		activityResponse.setStartTime(startTime);
+		activityResponse.setEndTime(endTime);
+
+		activityResponse.setParticipants(participantsRes);
+		activityResponse.setCollaborators(collaboratorsRes);
+
+		activityResponse.setStatus(activity.getStatuses());
+
+		ActivityTypeResponse activityTypeResponse = new ActivityTypeResponse();
+		BeanUtils.copyProperties(activity.getActivityTypes(), activityTypeResponse);
+		activityResponse.setActivityType(activityTypeResponse);
+
+		OwnerResponse ownerResponse = new OwnerResponse();
+		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
+		activityResponse.setCreatedBy(ownerResponse);
 
 		BeanUtils.copyProperties(activity, activityResponse);
 
@@ -427,11 +518,11 @@ public class ActivitiesService {
 		activityResponse.setEndedAt(activity.getEndedAt());
 		activityResponse.setStatus(activity.getStatuses());
 
-		BeanUtils.copyProperties(activity, activityResponse);
-
 		OwnerResponse ownerResponse = new OwnerResponse();
 		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
 		activityResponse.setCreatedBy(ownerResponse);
+
+		BeanUtils.copyProperties(activity, activityResponse);
 
 		return activityResponse;
 	}
@@ -481,12 +572,44 @@ public class ActivitiesService {
 		activityResponse.setParticipants(participantsRes);
 		activityResponse.setStatus(activity.getStatuses());
 
-		BeanUtils.copyProperties(activity, activityResponse);
-
 		OwnerResponse ownerResponse = new OwnerResponse();
 		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
 		activityResponse.setCreatedBy(ownerResponse);
 
+		String startedAt = this.getDateIgnoreTimezone(activity.getStartedAt());
+		String endedAt = this.getDateIgnoreTimezone(activity.getEndedAt());
+		String startTime = this.getTimeIgnoreTimezone(activity.getStartTime());
+		String endTime = this.getTimeIgnoreTimezone(activity.getEndTime());
+
+		activityResponse.setStartedAt(startedAt);
+		activityResponse.setEndedAt(endedAt);
+		activityResponse.setStartTime(startTime);
+		activityResponse.setEndTime(endTime);
+
+		BeanUtils.copyProperties(activity, activityResponse);
+
 		return activityResponse;
+	}
+
+	private String getDateIgnoreTimezone(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+		return String.format("%04d", year) + "-" + String.format("%02d", month) + "-" + String.format("%02d", day);
+	}
+
+	private String getTimeIgnoreTimezone(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+
+		int hour = calendar.get(Calendar.HOUR);
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+
+		return String.format("%02d", hour) + ":" + String.format("%02d", minute) + ":" + String.format("%02d", second);
 	}
 }

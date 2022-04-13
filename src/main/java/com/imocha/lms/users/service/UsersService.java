@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.imocha.common.helper.UserHelper;
 import com.imocha.keycloak.model.CreateRealmUserModel;
 import com.imocha.keycloak.service.KeycloakService;
 import com.imocha.lms.common.entities.Statuses;
@@ -12,14 +13,15 @@ import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.model.UsersListResponse;
 import com.imocha.lms.users.repository.UsersRepository;
 
-import lombok.extern.slf4j.Slf4j;
-
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -32,6 +34,10 @@ public class UsersService {
 
 	@Autowired
 	private StatusesService statusesService;
+
+	@Lazy
+	@Autowired
+	private UserHelper userHelper;
 
 	public List<UsersListResponse> list() {
 		List<Users> list = usersRepository.findAll();
@@ -49,8 +55,19 @@ public class UsersService {
 		return response;
 	}
 
+    public Users getByToken() {
+		return userHelper.getCurrentLoginUser();
+    }
+
 	public Users get(long id) {
 		Optional<Users> uOptional = usersRepository.findById(id);
+		uOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+
+		return uOptional.get();
+	}
+
+	public Users getByKeycloakId(String id) {
+		Optional<Users> uOptional = usersRepository.findByKeycloakId(id);
 		uOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		return uOptional.get();
@@ -69,15 +86,15 @@ public class UsersService {
 		return usersRepository.save(user);
 	}
 
-	public Users getByToken() {
-		String keycloakId = SecurityContextHolder.getContext().getAuthentication().getName();
-		log.info("keycloak Id: " + keycloakId);
+	// public Users getByToken() {
+	// 	String keycloakId = SecurityContextHolder.getContext().getAuthentication().getName();
+	// 	log.info("keycloak Id: " + keycloakId);
 
-		Users user = usersRepository.findByKeycloakId(keycloakId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
+	// 	Users user = usersRepository.findByKeycloakId(keycloakId)
+	// 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
-		return user;
-	}
+	// 	return user;
+	// }
 	
 	public void logout() {
 		

@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
@@ -12,7 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.common.entity.BaseEntity;
+import com.imocha.common.audit.Auditable;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.enumerator.ContextableTypes;
 import com.imocha.lms.deals.pipelines.entities.Pipelines;
@@ -23,10 +24,7 @@ import lombok.Data;
 
 @Data
 @Entity(name = "deals")
-public class Deals extends BaseEntity {
-
-	/** Primary key. */
-	protected static final String PK = "id";
+public class Deals extends Auditable<String> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

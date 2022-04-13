@@ -210,10 +210,6 @@ public class DealsService {
 		return responseList;
 	}
 
-	public List<ActivityListResponse> getDealsActivityList() {
-		return activitiesService.getActivitiesByContextableType(ContextableTypes.DEAL);
-	}
-
 	private DealsListResponse mapDealsToDealsListResponse(Deals deals) {
 		DealsListResponse dealsResponse = new DealsListResponse();
 		BeanUtils.copyProperties(deals, dealsResponse);
@@ -542,9 +538,11 @@ public class DealsService {
 		Stages newStages = stagesService.get(newStageId);
 
 		List<Deals> dealsList = dealsRepository.findByStages(oldStages);
+
 		for (Deals deals : dealsList) {
 			deals.setStages(newStages);
 		}
+
 		dealsRepository.saveAll(dealsList);
 
 		return newStages.getId();
@@ -620,7 +618,6 @@ public class DealsService {
 	}
 
 	public long addDeals(AddDealsRequest request) {
-		Users user = userHelper.getCurrentLoginUser();
 		Deals deals = new Deals();
 
 		if (request.getContextableType().equals(ContextableTypes.PERSON)) {
@@ -634,8 +631,6 @@ public class DealsService {
 		Statuses statuses = statusesService.findDealOpenStatuses();
 		deals.setStatuses(statuses);
 
-		deals.setCreatedBy(user);
-
 		Pipelines pipelines = pipelinesService.get(request.getPipelinesId());
 		deals.setPipelines(pipelines);
 
@@ -644,6 +639,7 @@ public class DealsService {
 
 		Users owner = usersService.get(request.getOwnerId());
 		deals.setOwner(owner);
+
 		Deals savedDeals = dealsRepository.save(deals);
 
 		if (request.getContextableType().equals(ContextableTypes.ORGANIZATION)) {

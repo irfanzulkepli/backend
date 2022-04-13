@@ -6,10 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.imocha.lms.common.model.StatusesResponse;
 import com.imocha.lms.common.model.TagResponse;
-import com.imocha.lms.deals.pipelines.model.PipelinesResponse;
-import com.imocha.lms.deals.pipelines.model.StagesResponse;
 import com.imocha.lms.leads.model.OwnerResponse;
-import com.imocha.lms.leads.model.PeopleResponse;
 import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
