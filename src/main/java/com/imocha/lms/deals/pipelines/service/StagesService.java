@@ -114,9 +114,6 @@ public class StagesService {
             }
         }
 
-        Users users = userHelper.getCurrentLoginUser();
-        stages.setUsers(users);
-
         stages.setName(request.getName());
         stages.setPriority(request.getPriority());
         stages.setProbability(request.getProbability());

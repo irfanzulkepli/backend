@@ -55,10 +55,6 @@ public class UsersService {
 		return response;
 	}
 
-    public Users getByToken() {
-		return userHelper.getCurrentLoginUser();
-    }
-
 	public Users get(long id) {
 		Optional<Users> uOptional = usersRepository.findById(id);
 		uOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
@@ -71,6 +67,16 @@ public class UsersService {
 		uOptional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found"));
 
 		return uOptional.get();
+	}
+
+	public Users getByToken() {
+		String currentUserId = userHelper.getCurrentUserId();
+
+		if (StringUtils.isBlank(currentUserId)) {
+			return null;
+		}
+
+		return this.getByKeycloakId(currentUserId);
 	}
 
 	public Users createUsers(CreateRealmUserModel payload) {

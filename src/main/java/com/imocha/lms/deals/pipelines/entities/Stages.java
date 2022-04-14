@@ -2,9 +2,6 @@
 
 package com.imocha.lms.deals.pipelines.entities;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -13,13 +10,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.imocha.lms.users.entities.Users;
+import com.imocha.common.audit.Auditable;
 
 import lombok.Data;
 
 @Data
 @Entity(name = "stages")
-public class Stages implements Serializable {
+public class Stages extends Auditable<String> {
 
     /** Primary key. */
     protected static final String PK = "id";
@@ -34,16 +31,9 @@ public class Stages implements Serializable {
     private int probability;
     @Column(nullable = false, precision = 10)
     private int priority;
-    @Column(name = "created_at")
-    private Date createdAt;
-    @Column(name = "updated_at")
-    private Date updatedAt;
-    @ManyToOne
-    @JoinColumn(name = "created_by")
-    private Users users;
     @ManyToOne(optional = false)
     @JoinColumn(name = "pipeline_id", nullable = false)
     private Pipelines pipelines;
-	@Column(name = "active")
-	private boolean active = true;
+    @Column(name = "active")
+    private boolean active = true;
 }

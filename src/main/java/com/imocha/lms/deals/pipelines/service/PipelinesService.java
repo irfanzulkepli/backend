@@ -19,6 +19,7 @@ import com.imocha.lms.deals.pipelines.repository.PipelinesRepository;
 import com.imocha.lms.deals.service.DealsService;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.users.entities.Users;
+import com.imocha.lms.users.service.UsersService;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class PipelinesService {
     private StagesService stagesService;
 
     @Autowired
-    UserHelper userHelper;
+    UsersService usersService;
 
     public Page<PipelinesPageResponse> page(@Valid PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
@@ -70,9 +71,10 @@ public class PipelinesService {
                 pipelinesResponse.setActive("INACTIVE");
             }
 
-            OwnerResponse ownerResponse = new OwnerResponse();
-            BeanUtils.copyProperties(pipelines.getUsers(), ownerResponse);
-            pipelinesResponse.setUsers(ownerResponse);
+            OwnerResponse createdByResponse = new OwnerResponse();
+            Users createdBy = usersService.getByKeycloakId(pipelines.getCreatedBy());
+            BeanUtils.copyProperties(createdBy, createdByResponse);
+            pipelinesResponse.setUsers(createdByResponse);
 
             long totalDealValue = dealsService.getTotalDealValueByPipelines(pipelines);
             pipelinesResponse.setTotalDealValue(totalDealValue);
@@ -126,9 +128,6 @@ public class PipelinesService {
     public long add(AddPipelinesRequest request) {
         Pipelines pipelines = new Pipelines();
         pipelines.setName(request.getName());
-
-        Users users = userHelper.getCurrentLoginUser();
-        pipelines.setUsers(users);
 
         Pipelines savedPipelines = pipelinesRepository.save(pipelines);
 

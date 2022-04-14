@@ -9,11 +9,13 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.imocha.common.audit.Auditable;
+
 import lombok.Data;
 
 @Data
 @Entity(name = "contact_types")
-public class ContactTypes implements Serializable {
+public class ContactTypes extends Auditable<String> {
 
     /** Primary key. */
     protected static final String PK = "id";

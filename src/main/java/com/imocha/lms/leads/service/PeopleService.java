@@ -319,7 +319,6 @@ public class PeopleService {
 		Countries country = countriesService.getCountryById(requestModel.getCountryId());
 
 		people.setCountries(country);
-		people.setUpdatedAt(dateNow);
 
 		return peopleRepository.save(people);
 	}
@@ -336,7 +335,6 @@ public class PeopleService {
 		Users owner = usersService.get(requestModel.getOwnerId());
 		people.setName(requestModel.getName());
 		people.setOwner(owner);
-		people.setUpdatedAt(dateNow);
 
 		return peopleRepository.save(people);
 	}
@@ -380,8 +378,6 @@ public class PeopleService {
 		handleEmailUpdateRequest(emailsRequest, id);
 		handlePhoneUpdateRequest(phonesRequest, id);
 
-		people.setUpdatedAt(dateNow);
-
 		return peopleRepository.save(people);
 	}
 
@@ -393,7 +389,6 @@ public class PeopleService {
 
 		handlePersonOrganizationUpdateRequest(requestModel.getPersonOrganizations(), people);
 
-		people.setUpdatedAt(dateNow);
 		peopleRepository.save(people);
 
 		return people;
@@ -413,7 +408,6 @@ public class PeopleService {
 
 		tagService.save(taggable);
 
-		people.setUpdatedAt(dateNow);
 		peopleRepository.save(people);
 
 		return people;
@@ -429,7 +423,6 @@ public class PeopleService {
 		Taggables taggable = tagService.getTaggable(tag, id, ContextableTypes.PERSON);
 		tagService.deleteByEntity(taggable);
 
-		people.setUpdatedAt(dateNow);
 		peopleRepository.save(people);
 
 		return id;
@@ -483,9 +476,6 @@ public class PeopleService {
 	public People addPeople(PeopleRequest peopleRequest) {
 		People people = new People();
 
-		people.setCreatedAt(dateNow);
-		people.setUpdatedAt(dateNow);
-
 		BeanUtils.copyProperties(peopleRequest, people);
 
 		List<PersonOrganizationRequest> organizationRequests = peopleRequest.getPersonOrganizationRequests();
@@ -496,7 +486,6 @@ public class PeopleService {
 		people.setOwner(owner);
 
 		Users createdBy = usersService.get(peopleRequest.getCreatedBy());
-		people.setCreatedBy(createdBy);
 
 		ContactTypes contactTypes = contactTypesService.findById(peopleRequest.getContactTypesId());
 		people.setContactTypes(contactTypes);
@@ -575,9 +564,6 @@ public class PeopleService {
 		Users owner = usersService.get(peopleRequest.getOwnerId());
 		people.setOwner(owner);
 
-		Users createdBy = usersService.get(peopleRequest.getCreatedBy());
-		people.setCreatedBy(createdBy);
-
 		ContactTypes contactTypes = contactTypesService.findById(peopleRequest.getContactTypesId());
 		people.setContactTypes(contactTypes);
 
@@ -589,8 +575,6 @@ public class PeopleService {
 		handleEmailUpdateRequest(emailsRequest, id);
 		handlePhoneUpdateRequest(phonesRequest, id);
 		handlePersonOrganizationUpdateRequest(personOrganizationRequests, people);
-
-		people.setUpdatedAt(dateNow);
 
 		peopleRepository.save(people);
 

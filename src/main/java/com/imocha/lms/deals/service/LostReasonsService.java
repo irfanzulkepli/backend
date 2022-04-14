@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.deals.entities.LostReasons;
 import com.imocha.lms.deals.model.AddLostReasonsRequest;
@@ -16,6 +15,7 @@ import com.imocha.lms.deals.model.UpdateLostReasonsRequest;
 import com.imocha.lms.deals.repositories.LostReasonsRepository;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.users.entities.Users;
+import com.imocha.lms.users.service.UsersService;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +32,8 @@ public class LostReasonsService {
     @Autowired
     private LostReasonsRepository lostReasonsRepository;
 
-	@Autowired
-	UserHelper userHelper;
+    @Autowired
+    private UsersService usersService;
 
     public Page<LostReasonsPageResponse> page(PageableRequest pageableRequest) {
         int page = pageableRequest.getPage();
@@ -55,9 +55,10 @@ public class LostReasonsService {
                         pageResponse.setActive("INACTIVE");
                     }
 
-                    OwnerResponse ownerResponse = new OwnerResponse();
-                    BeanUtils.copyProperties(lostReasons.getUsers(), ownerResponse);
-                    pageResponse.setCreatedBy(ownerResponse);
+                    OwnerResponse createdByResponse = new OwnerResponse();
+                    Users createdBy = usersService.getByKeycloakId(lostReasons.getCreatedBy());
+                    BeanUtils.copyProperties(createdBy, createdByResponse);
+                    pageResponse.setCreatedBy(createdByResponse);
 
                     return pageResponse;
                 }).collect(Collectors.toList());
@@ -90,19 +91,17 @@ public class LostReasonsService {
         LostReasonsResponse lostReasonsResponse = new LostReasonsResponse();
         BeanUtils.copyProperties(lostReasons, lostReasonsResponse);
 
-        OwnerResponse ownerResponse = new OwnerResponse();
-        BeanUtils.copyProperties(lostReasons.getUsers(), ownerResponse);
-        lostReasonsResponse.setUsers(ownerResponse);
+        OwnerResponse createdByResponse = new OwnerResponse();
+        Users createdBy = usersService.getByKeycloakId(lostReasons.getCreatedBy());
+        BeanUtils.copyProperties(createdBy, createdByResponse);
+        lostReasonsResponse.setUsers(createdByResponse);
 
         return lostReasonsResponse;
     }
 
     public long add(AddLostReasonsRequest request) {
-        Users users = userHelper.getCurrentLoginUser();
-
         LostReasons lostReasons = new LostReasons();
         lostReasons.setLostReason(request.getLostReason());
-        lostReasons.setUsers(users);
         lostReasonsRepository.save(lostReasons);
         return lostReasons.getId();
     }

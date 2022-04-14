@@ -2,7 +2,6 @@
 
 package com.imocha.lms.activities.entities;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -17,9 +16,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.imocha.common.audit.Auditable;
 import com.imocha.lms.common.entities.Statuses;
 import com.imocha.lms.common.enumerator.ContextableTypes;
-import com.imocha.lms.users.entities.Users;
 
 import lombok.Data;
 
@@ -27,10 +26,7 @@ import lombok.Data;
 @Entity
 @Table(name = "activities", indexes = {
 		@Index(name = "activitiesActivitiesContextableTypeContextableIdIndex", columnList = "contextable_type,contextable_id") })
-public class Activities implements Serializable {
-
-	/** Primary key. */
-	protected static final String PK = "id";
+public class Activities extends Auditable<String> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,16 +48,9 @@ public class Activities implements Serializable {
 	private Date startTime;
 	@Column(name = "end_time")
 	private Date endTime;
-	@Column(name = "created_at")
-	private Date createdAt;
-	@Column(name = "updated_at")
-	private Date updatedAt;
 	@ManyToOne
 	@JoinColumn(name = "activity_type_id")
 	private ActivityTypes activityTypes;
-	@ManyToOne
-	@JoinColumn(name = "created_by")
-	private Users users;
 	@ManyToOne
 	@JoinColumn(name = "status_id")
 	private Statuses statuses;

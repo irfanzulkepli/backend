@@ -137,9 +137,6 @@ public class OrganizationService {
 		Users owner = usersService.get(requestModel.getOwnerId());
 		organization.setOwner(owner);
 
-		Users createdBy = usersService.get(requestModel.getCreatedById());
-		organization.setUsers(createdBy);
-
 		ContactTypes contactTypes = contactTypesService.findById(requestModel.getContactTypesId());
 		organization.setContactTypes(contactTypes);
 
@@ -147,9 +144,6 @@ public class OrganizationService {
 			Countries country = countriesService.getCountryById(requestModel.getCountryId());
 			organization.setCountries(country);
 		}
-
-		organization.setCreatedAt(dateNow);
-		organization.setUpdatedAt(dateNow);
 
 		return organizationRepository.save(organization);
 	}
@@ -164,9 +158,6 @@ public class OrganizationService {
 		Users owner = usersService.get(requestModel.getOwnerId());
 		organization.setOwner(owner);
 
-		Users createdBy = usersService.get(requestModel.getCreatedById());
-		organization.setUsers(createdBy);
-
 		ContactTypes contactTypes = contactTypesService.findById(requestModel.getContactTypesId());
 		organization.setContactTypes(contactTypes);
 
@@ -174,8 +165,6 @@ public class OrganizationService {
 			Countries country = countriesService.getCountryById(requestModel.getCountryId());
 			organization.setCountries(country);
 		}
-
-		organization.setUpdatedAt(dateNow);
 
 		return organizationRepository.save(organization);
 	}
@@ -290,7 +279,6 @@ public class OrganizationService {
 		Countries country = countriesService.getCountryById(requestModel.getCountryId());
 
 		organization.setCountries(country);
-		organization.setUpdatedAt(dateNow);
 
 		return organizationRepository.save(organization);
 	}
@@ -343,7 +331,6 @@ public class OrganizationService {
 
 		handlePersonOrganizationUpdateRequest(requestModel.getPersonOrganizations(), organization);
 
-		organization.setUpdatedAt(dateNow);
 		organizationRepository.save(organization);
 
 		return organization;
@@ -363,7 +350,6 @@ public class OrganizationService {
 
 		tagService.save(taggable);
 
-		organization.setUpdatedAt(dateNow);
 		organizationRepository.save(organization);
 
 		return organization;
@@ -379,7 +365,6 @@ public class OrganizationService {
 		Taggables taggable = tagService.getTaggable(tag, id, ContextableTypes.PERSON);
 		tagService.deleteByEntity(taggable);
 
-		organization.setUpdatedAt(dateNow);
 		organizationRepository.save(organization);
 
 		return id;

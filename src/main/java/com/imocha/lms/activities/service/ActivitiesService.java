@@ -49,6 +49,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.authentication.UserServiceBeanDefinitionParser;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -226,9 +227,6 @@ public class ActivitiesService {
 		Activities activity = new Activities();
 		BeanUtils.copyProperties(requestModel, activity);
 
-		Users user = userHelper.getCurrentLoginUser();
-		activity.setUsers(user);
-
 		Statuses status = this.getStatusByMarkAsDone(requestModel.isMarkAsDone());
 		activity.setStatuses(status);
 
@@ -291,8 +289,6 @@ public class ActivitiesService {
 
 		ActivityTypes activityType = activityTypesRepository.getById(requestModel.getActivityTypeId());
 		activity.setActivityTypes(activityType);
-
-		activity.setUpdatedAt(dateNow);
 
 		Activities newActivity = activitiesRepository.save(activity);
 
@@ -399,7 +395,6 @@ public class ActivitiesService {
 
 		Statuses status = statusesService.findById(doneStatusId);
 		activity.setStatuses(status);
-		activity.setUpdatedAt(dateNow);
 
 		activitiesRepository.save(activity);
 
@@ -458,9 +453,10 @@ public class ActivitiesService {
 		BeanUtils.copyProperties(activity.getActivityTypes(), activityTypeResponse);
 		activityResponse.setActivityType(activityTypeResponse);
 
-		OwnerResponse ownerResponse = new OwnerResponse();
-		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
-		activityResponse.setCreatedBy(ownerResponse);
+		OwnerResponse createdByResponse = new OwnerResponse();
+		Users createdBy = usersService.getByKeycloakId(activity.getCreatedBy());
+		BeanUtils.copyProperties(createdBy, createdByResponse);
+		activityResponse.setCreatedBy(createdByResponse);
 
 		BeanUtils.copyProperties(activity, activityResponse);
 
@@ -518,9 +514,10 @@ public class ActivitiesService {
 		activityResponse.setEndedAt(activity.getEndedAt());
 		activityResponse.setStatus(activity.getStatuses());
 
-		OwnerResponse ownerResponse = new OwnerResponse();
-		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
-		activityResponse.setCreatedBy(ownerResponse);
+		OwnerResponse createdByResponse = new OwnerResponse();
+		Users createdBy = usersService.getByKeycloakId(activity.getCreatedBy());
+		BeanUtils.copyProperties(createdBy, createdByResponse);
+		activityResponse.setCreatedBy(createdByResponse);
 
 		BeanUtils.copyProperties(activity, activityResponse);
 
@@ -572,9 +569,10 @@ public class ActivitiesService {
 		activityResponse.setParticipants(participantsRes);
 		activityResponse.setStatus(activity.getStatuses());
 
-		OwnerResponse ownerResponse = new OwnerResponse();
-		BeanUtils.copyProperties(activity.getUsers(), ownerResponse);
-		activityResponse.setCreatedBy(ownerResponse);
+		OwnerResponse createdByResponse = new OwnerResponse();
+		Users createdBy = usersService.getByKeycloakId(activity.getCreatedBy());
+		BeanUtils.copyProperties(createdBy, createdByResponse);
+		activityResponse.setCreatedBy(createdByResponse);
 
 		String startedAt = this.getDateIgnoreTimezone(activity.getStartedAt());
 		String endedAt = this.getDateIgnoreTimezone(activity.getEndedAt());

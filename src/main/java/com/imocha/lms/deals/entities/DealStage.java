@@ -12,6 +12,7 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.imocha.common.audit.Auditable;
 import com.imocha.lms.deals.pipelines.entities.Stages;
 
 import lombok.Data;
@@ -19,7 +20,7 @@ import lombok.Data;
 @Data
 @Entity(name = "deal_stage")
 @IdClass(DealStage.DealStageId.class)
-public class DealStage implements Serializable {
+public class DealStage extends Auditable<String> {
 
     /**
      * IdClass for primary key when using JPA annotations
@@ -29,13 +30,6 @@ public class DealStage implements Serializable {
         Stages stages;
     }
 
-    /** Primary key. */
-    protected static final String PK = "DealStagePrimary";
-
-    @Column(name = "created_at")
-    private Date createdAt;
-    @Column(name = "updated_at")
-    private Date updatedAt;
     @ManyToOne(optional = false)
     @Id
     @JoinColumn(name = "deal_id", nullable = false)

@@ -2,7 +2,6 @@
 
 package com.imocha.lms.leads.entities;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -13,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.imocha.common.audit.Auditable;
 import com.imocha.lms.common.entities.Countries;
 import com.imocha.lms.users.entities.Users;
 
@@ -20,7 +20,7 @@ import lombok.Data;
 
 @Data
 @Entity(name = "people")
-public class People implements Serializable {
+public class People extends Auditable<String> {
 
 	/** Primary key. */
 	protected static final String PK = "id";
@@ -32,10 +32,6 @@ public class People implements Serializable {
 	@Column(nullable = false, length = 191)
 	private String name;
 	private String address;
-	@Column(name = "created_at")
-	private Date createdAt;
-	@Column(name = "updated_at")
-	private Date updatedAt;
 	private String area;
 	@Column(length = 191)
 	private String state;
@@ -54,10 +50,6 @@ public class People implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "country_id")
 	private Countries countries;
-
-	@ManyToOne
-	@JoinColumn(name = "created_by")
-	private Users createdBy;
 
 	@ManyToOne
 	@JoinColumn(name = "owner_id")

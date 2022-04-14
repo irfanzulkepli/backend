@@ -10,6 +10,7 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.imocha.common.audit.Auditable;
 import com.imocha.lms.leads.entities.People;
 
 import lombok.Data;
@@ -17,7 +18,7 @@ import lombok.Data;
 @Data
 @Entity(name = "deal_people")
 @IdClass(DealPeople.DealPeopleId.class)
-public class DealPeople implements Serializable {
+public class DealPeople extends Auditable<String> {
 
     /**
      * IdClass for primary key when using JPA annotations
@@ -27,13 +28,6 @@ public class DealPeople implements Serializable {
         Long people;
     }
 
-    /** Primary key. */
-    protected static final String PK = "DealPeoplePrimary";
-
-    @Column(name = "created_at")
-    private Date createdAt;
-    @Column(name = "updated_at")
-    private Date updatedAt;
     @ManyToOne(optional = false)
     @Id
     @JoinColumn(name = "deal_id", nullable = false)
