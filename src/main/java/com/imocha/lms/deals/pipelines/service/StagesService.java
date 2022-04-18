@@ -39,8 +39,8 @@ public class StagesService {
     @Autowired
     private PipelinesService pipelinesService;
 
-	@Autowired
-	UserHelper userHelper;
+    @Autowired
+    UserHelper userHelper;
 
     @Lazy
     @Autowired
@@ -55,13 +55,11 @@ public class StagesService {
         }
 
         Pipelines pipelines = pipelinesService.get(pipelinesId);
-        List<Stages> list = stagesRepository.findByPipelines(pipelines);
+        List<Stages> list = stagesRepository.findByPipelinesAndActiveTrue(pipelines);
         List<StagesListResponse> response = new ArrayList<StagesListResponse>();
         for (Stages stages : list) {
-            if (stages.isActive()) {
-                StagesListResponse pipelinesListResponse = this.mapStagesToStagesListResponse(stages);
-                response.add(pipelinesListResponse);
-            }
+            StagesListResponse pipelinesListResponse = this.mapStagesToStagesListResponse(stages);
+            response.add(pipelinesListResponse);
         }
         return response;
     }
@@ -87,7 +85,7 @@ public class StagesService {
     }
 
     public int getStagesCountByPipelines(Pipelines pipelines) {
-        List<Stages> stagesList = stagesRepository.findByPipelines(pipelines);
+        List<Stages> stagesList = stagesRepository.findByPipelinesAndActiveTrue(pipelines);
         return stagesList.size();
     }
 

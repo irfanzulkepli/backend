@@ -9,7 +9,7 @@ import com.imocha.lms.deals.pipelines.entities.Stages;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StagesRepository extends JpaRepository<Stages, Long> {
-    public List<Stages> findByPipelines(Pipelines pipelines);
+    public List<Stages> findByPipelinesAndActiveTrue(Pipelines pipelines);
 
     public Optional<Stages> findByPipelinesAndId(Pipelines pipelines, long id);
 }

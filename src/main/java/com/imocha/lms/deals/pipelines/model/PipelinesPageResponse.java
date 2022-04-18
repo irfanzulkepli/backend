@@ -11,7 +11,6 @@ public class PipelinesPageResponse {
 	private long id;
 	private String name;
 	private long totalDealValue;
-    private String active;
 	private int dealsCount;
 	private int stagesCount;
 	private Date createdAt;

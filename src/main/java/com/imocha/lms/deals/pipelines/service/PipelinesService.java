@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
 import com.imocha.lms.deals.pipelines.entities.Pipelines;
 import com.imocha.lms.deals.pipelines.model.AddPipelinesRequest;
@@ -16,6 +15,7 @@ import com.imocha.lms.deals.pipelines.model.PipelinesPageResponse;
 import com.imocha.lms.deals.pipelines.model.UpdatePipelinesRequest;
 import com.imocha.lms.deals.pipelines.model.UpdateStageRequest;
 import com.imocha.lms.deals.pipelines.repository.PipelinesRepository;
+import com.imocha.lms.deals.pipelines.specification.PipelinesSpecification;
 import com.imocha.lms.deals.service.DealsService;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.users.entities.Users;
@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,6 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 public class PipelinesService {
     @Autowired
     private PipelinesRepository pipelinesRepository;
+
+    @Autowired
+    private PipelinesSpecification pipelinesSpecification;
 
     @Lazy
     @Autowired
@@ -58,18 +63,13 @@ public class PipelinesService {
         String[] properties = pageableRequest.getProperties();
 
         PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
-        Page<Pipelines> pipelinesPage = pipelinesRepository.findAll(pageRequest);
+        Specification<Pipelines> spec = pipelinesSpecification.getSpecification(pageableRequest);
+		Page<Pipelines> pipelinesPage = pipelinesRepository.findAll(spec, pageRequest);
 
         List<PipelinesPageResponse> pipelinesResponseList = pipelinesPage.getContent().stream().map(pipelines -> {
 
             PipelinesPageResponse pipelinesResponse = new PipelinesPageResponse();
             BeanUtils.copyProperties(pipelines, pipelinesResponse);
-
-            if (pipelines.isActive()) {
-                pipelinesResponse.setActive("ACTIVE");
-            } else {
-                pipelinesResponse.setActive("INACTIVE");
-            }
 
             OwnerResponse createdByResponse = new OwnerResponse();
             Users createdBy = usersService.getByKeycloakId(pipelines.getCreatedBy());
@@ -100,7 +100,7 @@ public class PipelinesService {
     }
 
     public List<PipelinesListResponse> list() {
-        List<Pipelines> list = pipelinesRepository.findAll();
+        List<Pipelines> list = pipelinesRepository.findByActiveTrue();
         List<PipelinesListResponse> response = new ArrayList<PipelinesListResponse>();
         for (Pipelines pipelines : list) {
             PipelinesListResponse pipelinesListResponse = this.mapPipelinesToPipelinesListResponse(pipelines);
@@ -117,7 +117,7 @@ public class PipelinesService {
     }
 
     public Pipelines getFirstPipelines() {
-        List<Pipelines> list = pipelinesRepository.findAll();
+        List<Pipelines> list = pipelinesRepository.findByActiveTrue();
         if (list.size() <= 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "entity not found");
         }

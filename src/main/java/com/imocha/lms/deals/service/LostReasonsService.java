@@ -12,6 +12,7 @@ import com.imocha.lms.deals.model.LostReasonsListResponse;
 import com.imocha.lms.deals.model.LostReasonsPageResponse;
 import com.imocha.lms.deals.model.LostReasonsResponse;
 import com.imocha.lms.deals.model.UpdateLostReasonsRequest;
+import com.imocha.lms.deals.pipelines.specification.LostReasonsSpecification;
 import com.imocha.lms.deals.repositories.LostReasonsRepository;
 import com.imocha.lms.leads.model.OwnerResponse;
 import com.imocha.lms.users.entities.Users;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,6 +33,9 @@ import org.springframework.web.server.ResponseStatusException;
 public class LostReasonsService {
     @Autowired
     private LostReasonsRepository lostReasonsRepository;
+
+    @Autowired
+    private LostReasonsSpecification lostReasonsSpecification;
 
     @Autowired
     private UsersService usersService;
@@ -42,18 +47,13 @@ public class LostReasonsService {
         String[] properties = pageableRequest.getProperties();
 
         PageRequest pageRequest = PageRequest.of(page, size, direction, properties);
-        Page<LostReasons> lostReasonsPage = lostReasonsRepository.findAll(pageRequest);
+        Specification <LostReasons> spec = lostReasonsSpecification.getSpecification(pageableRequest);
+        Page<LostReasons> lostReasonsPage = lostReasonsRepository.findAll(spec, pageRequest);
 
         List<LostReasonsPageResponse> lostReasonsResponseList = lostReasonsPage.getContent().stream()
                 .map(lostReasons -> {
                     LostReasonsPageResponse pageResponse = new LostReasonsPageResponse();
                     BeanUtils.copyProperties(lostReasons, pageResponse);
-
-                    if (lostReasons.isActive()) {
-                        pageResponse.setActive("ACTIVE");
-                    } else {
-                        pageResponse.setActive("INACTIVE");
-                    }
 
                     OwnerResponse createdByResponse = new OwnerResponse();
                     Users createdBy = usersService.getByKeycloakId(lostReasons.getCreatedBy());
