@@ -2,13 +2,29 @@ package com.imocha.lms.deals.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.imocha.common.helper.UserHelper;
 import com.imocha.common.model.PageableRequest;
-import com.imocha.lms.activities.model.ActivityListResponse;
 import com.imocha.lms.activities.service.ActivitiesService;
 import com.imocha.lms.common.entities.Discussions;
 import com.imocha.lms.common.entities.Followers;
@@ -47,7 +63,7 @@ import com.imocha.lms.deals.pipelines.service.PipelinesService;
 import com.imocha.lms.deals.pipelines.service.StagesService;
 import com.imocha.lms.deals.repositories.DealPeopleRepository;
 import com.imocha.lms.deals.repositories.DealsRepository;
-import com.imocha.lms.deals.specification.DealSpecification;
+import com.imocha.lms.deals.specification.DealsSpecification;
 import com.imocha.lms.leads.entities.People;
 import com.imocha.lms.leads.model.FollowerResponse;
 import com.imocha.lms.leads.model.OrganizationsResponse;
@@ -60,21 +76,6 @@ import com.imocha.lms.leads.service.PeopleService;
 import com.imocha.lms.users.entities.Users;
 import com.imocha.lms.users.service.UsersService;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -86,7 +87,7 @@ public class DealsService {
 	Date dateNow = new Date();
 
 	@Autowired
-	private DealSpecification dealSpecification;
+	private DealsSpecification dealSpecification;
 
 	@Autowired
 	private DealsRepository dealsRepository;
@@ -188,6 +189,17 @@ public class DealsService {
 		}
 
 		return responseList;
+	}
+
+	public Set<Long> getAllIds() {
+		Set<Long> ids = new HashSet<Long>();
+
+		List<Deals> dealsList = dealsRepository.findAll();
+		for (Deals deal : dealsList) {
+			ids.add(deal.getId());
+		}
+
+		return ids;
 	}
 
 	public List<DealsListResponse> listPipelineView(String id) {
