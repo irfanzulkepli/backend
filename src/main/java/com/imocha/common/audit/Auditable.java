@@ -2,6 +2,7 @@ package com.imocha.common.audit;
 
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Temporal;
@@ -21,10 +22,12 @@ import lombok.Getter;
 public abstract class Auditable<U> {
 
     @CreatedBy
+    @Column(updatable = false)
     protected U createdBy;
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(updatable = false)
     protected Date createdAt;
 
     @LastModifiedBy
